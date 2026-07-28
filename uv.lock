@@ -38,6 +38,7 @@ dependencies = [
     { name = "rdkit" },
     { name = "refnd" },
     { name = "rich" },
+    { name = "scipy" },
     { name = "transformers" },
 ]
 
@@ -72,6 +73,7 @@ requires-dist = [
     { name = "rdkit", specifier = ">=2026.3.3" },
     { name = "refnd" },
     { name = "rich", specifier = ">=15.0.0" },
+    { name = "scipy", specifier = ">=1.16.0" },
     { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.7.1", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "ablation", extra = "cpu" } },
     { name = "torch", marker = "extra == 'cuda'", specifier = ">=2.7.1", index = "https://download.pytorch.org/whl/cu118", conflict = { package = "ablation", extra = "cuda" } },
     { name = "torchvision", marker = "extra == 'cpu'", specifier = ">=0.22.1", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "ablation", extra = "cpu" } },

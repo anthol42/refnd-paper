@@ -19,7 +19,7 @@ from refnd.core import (
     find_components,
     partition,
 )
-from refnd.kernels import KernelVariant
+from refnd.kernels import KernelVariant, zip_kernel
 from tqdm import tqdm
 if TYPE_CHECKING:
     from .datasets import DatasetConfig
@@ -35,33 +35,113 @@ def _shuffle_sample(sample: Any, rng: np.random.Generator) -> Any:
 
 
 
+def _gpd_tail_estimate(
+    scores: np.ndarray,
+    threshold: float,
+    tail_quantile: float = 0.01,
+    min_tail_samples: int = 1000,
+) -> float | None:
+    """Estimate P(score <= threshold) by fitting a Generalized Pareto Distribution
+    to the lower tail of *scores* and extrapolating below the sampled range.
+
+    Peaks-over-threshold: pick a tail cutoff `u` at the `tail_quantile` (well
+    above the true `threshold`, so it's estimated from plenty of samples),
+    fit a GPD to the excesses `u - score` for score < u, then extrapolate the
+    fitted tail down to `threshold`. Returns None if the fit is infeasible
+    (e.g. too few tail samples, or `threshold` isn't actually in the tail).
+    """
+    from scipy.stats import genpareto
+
+    n = len(scores)
+    k = max(min_tail_samples, int(n * tail_quantile))
+    k = min(k, n)
+    if k < min_tail_samples:
+        return None
+
+    sorted_scores = np.sort(scores)
+    u = sorted_scores[k - 1]
+    if threshold >= u:
+        # Threshold is inside the well-sampled region — no need to extrapolate.
+        # Let the caller fall back to its own n_hits/n_samples count.
+        return None
+
+    # Reflect the left tail into the right-tail convention GPD expects:
+    # Y = u - X, conditional on X < u, so Y >= 0 and larger Y <=> smaller
+    # (rarer) X. This Y | (X < u) is exactly the peaks-over-threshold
+    # excess distribution GPD is meant to model.
+    excesses = u - sorted_scores[:k]
+    try:
+        # Fit GPD(shape=xi, loc=0, scale=sigma) to Y | (X < u) via MLE.
+        shape, _, scale = genpareto.fit(excesses, floc=0)
+    except Exception:
+        return None
+
+    # P(X < u) estimated directly from the (non-rare) empirical fraction below u.
+    p_below_u = k / n
+    # genpareto.sf(y) = P(Y >= y | X < u), i.e. the conditional GPD survival
+    # function evaluated at the excess corresponding to `threshold`:
+    #   S(y) = (1 + xi * y / sigma) ** (-1 / xi)          if xi != 0
+    #   S(y) = exp(-y / sigma)                            if xi == 0
+    excess_needed = u - threshold
+    p_given_tail = genpareto.sf(excess_needed, shape, loc=0, scale=scale)
+    # Law of total probability (valid since threshold < u, so X <= threshold
+    # implies X < u — the event is entirely inside the conditioning set):
+    #   P(X <= threshold) = P(X < u) * P(Y >= u - threshold | X < u)
+    #                     = p_below_u * p_given_tail
+    return float(p_below_u * p_given_tail)
+
+
 def null_model(
     data: list[Any],
     cfg: "DatasetConfig",
     n_samples: int = 10_000_000,
     seed: int = 42,
+    use_gpd_tail: bool = True,
+    gpd_tail_quantile: float = 0.01,
+    gpd_min_tail_samples: int = 1000,
 ) -> float:
     """Estimate P(distance <= threshold) under a permutation null model.
 
     Generates n_samples random pairs of element-shuffled samples, computes
     all distances in one parallelized zip_kernel call (Rust/rayon), and
-    returns the fraction within the proximity threshold.
+    estimates the fraction within the proximity threshold.
     Used as gamma for CPM Leiden.
-    """
-    from refnd.kernels import zip_kernel
 
+    With n_samples in the millions, zero pairs can still land at/below the
+    threshold even though the true probability is nonzero (it's just rare).
+    When use_gpd_tail is True (default), a Generalized Pareto tail fit
+    (peaks-over-threshold) is used to extrapolate P(distance <= threshold)
+    from the observed distribution instead of relying on the raw count. This
+    falls back to the empirical count (or a Jeffreys pseudocount if there are
+    zero hits and the GPD fit is infeasible) if the tail fit can't be done.
+    """
     rng   = np.random.default_rng(seed)
     idx_a = rng.integers(0, len(data), size=n_samples)
     idx_b = rng.integers(0, len(data), size=n_samples)
     list_a = [_shuffle_sample(data[i], rng) for i in idx_a]
     list_b = [_shuffle_sample(data[i], rng) for i in idx_b]
     print("  [dim]Running kernel...[/]")
-    scores = zip_kernel(
-        cfg.modality, list_a, list_b,
-        n_threads=0, progress=True,
-        **cfg.kernel_params,
+    scores = np.asarray(
+        zip_kernel(
+            cfg.modality, list_a, list_b,
+            n_threads=0, progress=True,
+            **cfg.kernel_params,
+        ),
+        dtype=np.float64,
     )
-    return sum(1 for s in scores if s <= cfg.proximity_threshold) / n_samples
+
+    if use_gpd_tail:
+        gpd_p = _gpd_tail_estimate(
+            scores, cfg.proximity_threshold,
+            tail_quantile=gpd_tail_quantile,
+            min_tail_samples=gpd_min_tail_samples,
+        )
+        if gpd_p is not None:
+            print(f"  [dim]Null model (GPD tail fit): {gpd_p:.3e}[/]")
+            return gpd_p
+    else:
+        n_hits = int(np.sum(scores <= cfg.proximity_threshold))
+        return n_hits / n_samples
 
 
 def layer0_to_edge_store(adj: list[list[int]], n: int) -> EdgeStore:
@@ -251,9 +331,7 @@ def split_and_violations(
                 1 for hits in nn_results if hits and hits[0][1] < proximity_threshold
             ) / len(test_data)
 
-            train_sub_graph = _build_subgraph(
-                train_idx, hnsw_es, inweight_type,
-            )
+            train_sub_graph, _ = hnsw_graph.subgraph(train_idx)
             train_communities_global = [hnsw_communities[i] for i in train_idx]
             relabel = {old: new for new, old in enumerate(sorted(set(train_communities_global)))}
             train_communities_local = [relabel[c] for c in train_communities_global]

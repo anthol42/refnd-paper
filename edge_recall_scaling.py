@@ -18,6 +18,7 @@ import json
 import math
 import time
 from pathlib import Path
+import numpy as np
 
 from rich import print
 
@@ -32,20 +33,10 @@ SEED = 42
 
 # Fixed default HNSW params (mirrors main.py's argparse defaults) — everything
 # except ef_construction is held constant across sizes.
-BASE_EF_CONSTRUCTION = 64
-DEFAULT_HNSW_KWARGS = dict(
-    ef_init=1,
-    extend_candidates=False,
-    keep_pruned_connections=False,
-    use_heuristic=False,
-    strict_ef=False,
-    threshold_based_neighbourhood=False,
-)
+BASE_EF_CONSTRUCTION = 32
 
 
 def _prepare_subsets(dataset: str, data: list[str], sizes: list[int]) -> None:
-    import numpy as np
-
     Path(".cache/scaling_tmp").mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(SEED)
     for size in sizes:
@@ -85,7 +76,6 @@ def _build_and_recall(
         cfg.modality, data,
         proximity_threshold=cfg.proximity_threshold,
         ef_construction=ef_construction,
-        **DEFAULT_HNSW_KWARGS,
         **cfg.kernel_params,
     )
     t0 = time.perf_counter()

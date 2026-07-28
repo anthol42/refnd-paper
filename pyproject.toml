@@ -17,6 +17,7 @@ dependencies = [
     "rdkit>=2026.3.3",
     "refnd",
     "rich>=15.0.0",
+    "scipy>=1.16.0",
     "transformers==4.57.6",
 ]
 

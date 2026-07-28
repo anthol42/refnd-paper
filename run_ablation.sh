@@ -87,16 +87,12 @@ run uv run python debug_scaling_refnd.py
 
 # Effect of dataset size (and ef_construction) on HNSW edge recall
 run uv run python edge_recall_scaling.py --dataset atlas
-run uv run python edge_recall_scaling.py --dataset belka
-
-# mmseqs2 vs. refnd split leakage comparison (dbaasp)
-run uv run python max_identity_comparison.py
+run uv run python edge_recall_scaling.py --dataset belka --sizes 200000,1000000,5000000
 
 # In-distribution test (refnd + hestia split methods) for every dataset with an encoder
 run uv run python in_distribution_test.py --dataset dbaasp        --method both
 run uv run python in_distribution_test.py --dataset ld50_zhu      --method both
 run uv run python in_distribution_test.py --dataset prom_core_all --method both
-run uv run python in_distribution_test.py --dataset belka         --method both
 
 # Peptide Atlas - ef-init only
 run uv run python hyperparameters.py --dataset dbaasp        --ef-construction 64 --ef-init 1 --keep-pruned-connections --use-heuristic --leiden-objective cpm
