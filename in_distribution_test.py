@@ -46,7 +46,7 @@ from refnd.kernels import KernelVariant
 
 SplitFn = Callable[..., tuple[list[int], list[int]]]
 
-N_REPEATS = 5
+N_REPEATS = 10
 LABEL_SPLIT_RATIO = 0.5
 CLASSIFIER_SPLIT_RATIO = 0.2
 SEED_OFFSET = 10_000  # keeps the label split and classifier split independent
@@ -119,15 +119,36 @@ def train_test_split_hestia(
 ) -> tuple[list[int], list[int]]:
     data_type  = MODALITY_TO_HESTIA_DATA_TYPE[str(modality)]
     field_name = FIELD_NAME_BY_HESTIA_DATA_TYPE[data_type]
+    # This repo's thresholds are distances (lower = more similar; edges where
+    # distance <= threshold). hestia partitions on similarity (higher = more
+    # similar; kept where similarity >= min_threshold) — convert. Also,
+    # calculate_partitions() overwrites sim_args.min_threshold with its own
+    # `min_threshold` kwarg (default 0.0) before computing similarity, so it
+    # must be passed here too or hestia silently computes the full O(n^2)
+    # pairwise similarity with no cutoff at all.
+    sim_threshold = round(1.0 - threshold, 4)
 
     df = pd.DataFrame({field_name: dataset})
     df["idx"] = df.index
     gen = HestiaGenerator(df, verbose=False)
+    # By default calculate_partitions() sweeps ~20 thresholds (min_threshold=0.0,
+    # threshold_step=0.05) to trace a whole OOD-difficulty curve. We only want the
+    # one threshold matching this dataset's proximity_threshold, so threshold_step=1.0
+    # collapses its internal range(min_threshold_int, 100, threshold_step_int) to a
+    # single value — verified empirically to yield exactly one non-"random" key.
     gen.calculate_partitions(
-        sim_args=SimArguments(data_type=data_type, field_name=field_name, min_threshold=threshold),
+        sim_args=SimArguments(data_type=data_type, field_name=field_name, min_threshold=sim_threshold),
+        min_threshold=sim_threshold + 1e-6, threshold_step=1.0,
         test_size=test_ratio, valid_size=0.0, random_state=seed, verbose=0,
     )
-    parts = gen.get_partitions(return_dict=True)[threshold]
+    parts_dict = gen.get_partitions(return_dict=True)
+    # That single key is computed internally as int(min_threshold * 100) / 100, which
+    # can drift a float ULP from sim_threshold — take the closest numeric key rather
+    # than an exact match. (Also filters out hestia's extra 'random'-baseline key,
+    # which isn't numeric and would break the comparison.)
+    numeric_keys = [k for k in parts_dict if isinstance(k, (int, float))]
+    key = min(numeric_keys, key=lambda k: abs(k - sim_threshold))
+    parts = parts_dict[key]
     return [int(x) for x in parts["train"]], [int(x) for x in parts["test"]]
 
 
@@ -185,7 +206,13 @@ def main() -> None:
     parser.add_argument("--method", choices=["refnd", "hestia", "both"], default="both")
     parser.add_argument("--ef-construction", type=int, default=64)
     parser.add_argument("--ef-init", type=int, default=2)
+    parser.add_argument("--debug", action="store_true",
+                        help="Only run 2 repeats (instead of 10) for a fast smoke test")
     args = parser.parse_args()
+
+    global N_REPEATS
+    if args.debug:
+        N_REPEATS = 2
 
     cfg = DATASETS[args.dataset]
     if cfg.encoder is None:

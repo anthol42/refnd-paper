@@ -38,6 +38,8 @@ DATASET_SIZES: dict[str, list[Size]] = {
     "belka": [1_000_000, 5_000_000, 25_000_000, "full"],
 }
 
+DEBUG_SIZES: list[Size] = [5_000, 25_000]
+
 
 def _load_items(dataset: str, cache: CacheStore) -> list[str]:
     if dataset == "atlas":
@@ -71,10 +73,10 @@ def _subset_path(dataset: str, size: Size) -> Path:
     return TMP_DIR / f"{dataset}_{size}.fasta"
 
 
-def _prepare_subsets(dataset: str, data: list[str]) -> None:
+def _prepare_subsets(dataset: str, data: list[str], sizes: list[Size]) -> None:
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(SEED)
-    for size in DATASET_SIZES[dataset]:
+    for size in sizes:
         path = _subset_path(dataset, size)
         if path.exists():
             continue
@@ -161,8 +163,11 @@ def _run_subprocess(method_name: str, module: str, dataset: str, size: Size,
 def main() -> None:
     parser = argparse.ArgumentParser(description="Split pipeline scaling benchmark")
     parser.add_argument("--dataset", choices=list(DATASET_SIZES), default="atlas")
+    parser.add_argument("--debug", action="store_true",
+                        help="Only use 5K/25K sizes for a fast smoke test")
     args = parser.parse_args()
     dataset = args.dataset
+    sizes = DEBUG_SIZES if args.debug else DATASET_SIZES[dataset]
 
     cache = CacheStore()
 
@@ -172,13 +177,13 @@ def main() -> None:
     print(f"  {len(data):,} items")
 
     print("\nPreparing subsets...")
-    _prepare_subsets(dataset, data)
+    _prepare_subsets(dataset, data, sizes)
 
     records = _load_results(dataset)
 
     for method_name, module in METHODS.items():
         print(f"\n[green]-- Method: {method_name} --[/]")
-        for size in DATASET_SIZES[dataset]:
+        for size in sizes:
             input_path = _subset_path(dataset, size)
             if not input_path.exists():
                 print(f"  [dim]Skipping size {size}: subset not available[/]")

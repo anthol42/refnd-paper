@@ -6,6 +6,7 @@ violation-checking cost.
 Usage:
     uv run python test_scaling_detailed_refnd.py
 """
+import argparse
 import json
 import time
 from pathlib import Path
@@ -17,7 +18,8 @@ from refnd.core import HNSWState, INWeightType, LeidenObjective, find_communitie
 from src.cache import CacheStore
 from src.datasets import DATASETS, load_dataset
 
-SIZES   = [5_000, 25_000, 125_000, 625_000, 3_125_000]
+SIZES       = [5_000, 25_000, 125_000, 625_000, 3_125_000]
+DEBUG_SIZES = [5_000, 25_000]
 SEED    = 42
 TMP_DIR = Path(".cache/scaling_tmp")
 RESULTS = Path("results/scaling_detailed_refnd.json")
@@ -33,9 +35,9 @@ def _write_fasta(path: Path, sequences: list[str]) -> None:
             f.write(f">seq_{i}\n{seq}\n")
 
 
-def _prepare_subsets() -> None:
+def _prepare_subsets(sizes: list[int]) -> None:
     TMP_DIR.mkdir(parents=True, exist_ok=True)
-    needed = [s for s in SIZES if not _subset_path(s).exists()]
+    needed = [s for s in sizes if not _subset_path(s).exists()]
     if not needed:
         return
     print("Loading peptide_atlas dataset to generate missing subsets...")
@@ -103,10 +105,16 @@ def _time_one(size: int) -> dict | None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Per-stage timing breakdown of the refnd pipeline")
+    parser.add_argument("--debug", action="store_true",
+                        help="Only use 5K/25K sizes for a fast smoke test")
+    args = parser.parse_args()
+    sizes = DEBUG_SIZES if args.debug else SIZES
+
     RESULTS.parent.mkdir(exist_ok=True)
-    _prepare_subsets()
+    _prepare_subsets(sizes)
     records = []
-    for size in SIZES:
+    for size in sizes:
         record = _time_one(size)
         if record is not None:
             records.append(record)

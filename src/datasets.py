@@ -239,7 +239,7 @@ def _load_ld50_zhu() -> tuple[Any, np.ndarray, list[str]]:
     import io
     import requests
     from rdkit import Chem
-    from rdkit.Chem import AllChem
+    from rdkit.Chem import rdFingerprintGenerator
     from refnd.utils import BitFingerprint
 
     url = "https://huggingface.co/datasets/scikit-fingerprints/TDC_ld50_zhu/resolve/main/tdc_ld50_zhu.csv"
@@ -249,6 +249,7 @@ def _load_ld50_zhu() -> tuple[Any, np.ndarray, list[str]]:
 
     import pandas as pd
     df = pd.read_csv(io.StringIO(resp.text))
+    morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
     fp_arrays, labels, smiles = [], [], []
     for _, row in df.iterrows():
         y = float(row["Y"])
@@ -257,7 +258,7 @@ def _load_ld50_zhu() -> tuple[Any, np.ndarray, list[str]]:
         mol = Chem.MolFromSmiles(row["SMILES"])
         if mol is None:
             continue
-        rdkit_fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius=2, nBits=2048)
+        rdkit_fp = morgan_gen.GetFingerprint(mol)
         fp_arrays.append(np.array(rdkit_fp, dtype=bool))
         labels.append(y)
         smiles.append(row["SMILES"])
@@ -272,12 +273,13 @@ _BELKA_PROTEINS = ["BRD4", "HSA", "sEH"]  # fixed bit order for the 3-bit multi-
 def belka_fp_worker(smiles: str) -> np.ndarray | None:
     """Top-level so it's picklable for ProcessPoolExecutor. Reused by runtime_scripts."""
     from rdkit import Chem
-    from rdkit.Chem import AllChem
+    from rdkit.Chem import rdFingerprintGenerator
 
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
-    fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius=2, nBits=2048)
+    morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
+    fp = morgan_gen.GetFingerprint(mol)
     return np.array(fp, dtype=bool)
 
 
@@ -287,11 +289,13 @@ def belka_download() -> Path:
 
     import kagglehub
     from dotenv import load_dotenv
+    from kagglehub.config import get_kaggle_credentials
 
     load_dotenv()
-    if "KAGGLE_USERNAME" not in os.environ or "KAGGLE_KEY" not in os.environ:
+    if get_kaggle_credentials() is None:
         raise RuntimeError(
-            "KAGGLE_USERNAME / KAGGLE_KEY not set. Add them to a .env file "
+            "No Kaggle credentials found. Set KAGGLE_API_TOKEN, or KAGGLE_USERNAME "
+            "and KAGGLE_KEY, in a .env file "
             "(see https://www.kaggle.com/settings -> API -> Create New Token)."
         )
 

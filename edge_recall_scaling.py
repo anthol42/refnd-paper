@@ -29,6 +29,7 @@ from refnd.core import HNSWState, exact_edges
 from scaling_benchmark import _load_items, _subset_path, _write_fasta
 
 DEFAULT_SIZES = [5_000, 25_000, 125_000]
+DEBUG_SIZES   = [5_000, 25_000]
 SEED = 42
 
 # Fixed default HNSW params (mirrors main.py's argparse defaults) — everything
@@ -97,13 +98,16 @@ def main() -> None:
     parser.add_argument("--dataset", choices=["atlas", "belka"], default="atlas")
     parser.add_argument("--sizes", type=str, default=None,
                         help="Comma-separated sizes, default: 5000,25000,125000")
+    parser.add_argument("--debug", action="store_true",
+                        help="Only use 5K/25K sizes for a fast smoke test (overrides --sizes)")
     args = parser.parse_args()
 
-    sizes = (
-        [int(s) for s in args.sizes.split(",")]
-        if args.sizes is not None
-        else DEFAULT_SIZES
-    )
+    if args.debug:
+        sizes = DEBUG_SIZES
+    elif args.sizes is not None:
+        sizes = [int(s) for s in args.sizes.split(",")]
+    else:
+        sizes = DEFAULT_SIZES
     baseline_size = sizes[0]
 
     dataset = args.dataset

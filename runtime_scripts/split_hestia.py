@@ -70,6 +70,14 @@ def main():
     threshold  = args.threshold
     if threshold is None:
         threshold = DATASETS[SCALING_DATASET_KEY[args.dataset]].proximity_threshold
+    # This repo's thresholds are distances (lower = more similar; edges where
+    # distance <= threshold). hestia partitions on similarity (higher = more
+    # similar; kept where similarity >= min_threshold) — convert. Also,
+    # calculate_partitions() overwrites sim_args.min_threshold with its own
+    # `min_threshold` kwarg (default 0.0) before computing similarity, so it
+    # must be passed here too or hestia silently computes the full O(n^2)
+    # pairwise similarity with no cutoff at all.
+    sim_threshold = round(1.0 - threshold, 4)
 
     records = read_fasta(args.input)
     if not records:
@@ -82,15 +90,28 @@ def main():
     df["idx"] = df.index
 
     gen = HestiaGenerator(df, verbose=False)
+    # By default calculate_partitions() sweeps ~20 thresholds (min_threshold=0.0,
+    # threshold_step=0.05) to trace a whole OOD-difficulty curve. We only want the
+    # one threshold matching this dataset's proximity_threshold, so threshold_step=1.0
+    # collapses its internal range(min_threshold_int, 100, threshold_step_int) to a
+    # single value — verified empirically to yield exactly one non-"random" key.
     gen.calculate_partitions(
         sim_args=SimArguments(data_type=data_type, field_name=field_name,
-                              min_threshold=threshold),
+                              min_threshold=sim_threshold),
+        min_threshold=sim_threshold + 1e-6, threshold_step=1.0,
         test_size=args.test_size,
         valid_size=0.0,
         random_state=args.seed,
         verbose=1,
     )
-    parts = gen.get_partitions(return_dict=True)[threshold]
+    parts_dict = gen.get_partitions(return_dict=True)
+    # That single key is computed internally as int(min_threshold * 100) / 100, which
+    # can drift a float ULP from sim_threshold — take the closest numeric key rather
+    # than an exact match. (Also filters out hestia's extra 'random'-baseline key,
+    # which isn't numeric and would break the comparison.)
+    numeric_keys = [k for k in parts_dict if isinstance(k, (int, float))]
+    key = min(numeric_keys, key=lambda k: abs(k - sim_threshold))
+    parts = parts_dict[key]
 
     train_idx = [int(x) for x in parts["train"]]
     test_idx  = [int(x) for x in parts["test"]]
