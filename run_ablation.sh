@@ -80,6 +80,7 @@ run uv run python hyperparameters.py --dataset prom_core_all        --ef-constru
 
 # Scaling experiment (runtime/memory vs. dataset size, atlas + belka)
 run uv run python scaling_benchmark.py --dataset atlas
+# --> Resume here
 run uv run python scaling_benchmark.py --dataset belka
 
 # Per-stage timing breakdown of the refnd pipeline

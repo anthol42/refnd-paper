@@ -220,3 +220,8 @@ __marimo__/
 tmp*
 
 hestia_tmp_*
+
+# Generated plots and cached arrays/indexes from threshold/ experiments
+threshold/*.png
+threshold/cache/
+threshold/__pycache__/

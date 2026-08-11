@@ -78,11 +78,10 @@ def prepare_hnsw_input(dataset_key: str, items: list[str]) -> list[Any]:
     `molecular_similarity` incurs the same fingerprinting cost internally.
     """
     if dataset_key == "belka":
-        from concurrent.futures import ProcessPoolExecutor
         from refnd.utils import BitFingerprint
+        from .fingerprints import compute_fingerprints
 
-        with ProcessPoolExecutor() as executor:
-            fps = list(executor.map(belka_fp_worker, items, chunksize=256))
+        fps = compute_fingerprints(items)
         missing = sum(1 for fp in fps if fp is None)
         if missing:
             raise ValueError(f"{missing} SMILES in subset could not be parsed by RDKit")
@@ -270,19 +269,6 @@ def _load_ld50_zhu() -> tuple[Any, np.ndarray, list[str]]:
 _BELKA_PROTEINS = ["BRD4", "HSA", "sEH"]  # fixed bit order for the 3-bit multi-label vector
 
 
-def belka_fp_worker(smiles: str) -> np.ndarray | None:
-    """Top-level so it's picklable for ProcessPoolExecutor. Reused by runtime_scripts."""
-    from rdkit import Chem
-    from rdkit.Chem import rdFingerprintGenerator
-
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return None
-    morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    fp = morgan_gen.GetFingerprint(mol)
-    return np.array(fp, dtype=bool)
-
-
 def belka_download() -> Path:
     """Download (or reuse cached) BELKA competition files via kagglehub, return train file path."""
     import os
@@ -330,12 +316,40 @@ def belka_unique_smiles(cache: "CacheStore | None" = None) -> list[str]:
     return smiles
 
 
-def _load_belka() -> tuple[np.ndarray, np.ndarray, list[str]]:
-    import os
-    from concurrent.futures import ProcessPoolExecutor
+def belka_test_unique_smiles(cache: "CacheStore | None" = None) -> list[str]:
+    """Kaggle BELKA competition's held-out TEST set, unique molecule SMILES only
+    (no fingerprints/labels). A genuine production set for the train/production
+    threshold theory: Leash Bio built it from building-block combinations not
+    present in train, by design."""
+    if cache is not None:
+        cached = cache.get_dataset("belka_test_unique_smiles")
+        if cached is not None:
+            return cached[0]
 
     import pandas as pd
-    from tqdm import tqdm
+
+    train_path = belka_download()
+    test_path = train_path.parent / "test.parquet"
+    if not test_path.exists():
+        test_path = train_path.parent / "test.csv"
+    print(f"  Loading {test_path} (molecule_smiles only)...")
+    df = pd.read_parquet(test_path, columns=["molecule_smiles"]) \
+        if test_path.suffix == ".parquet" \
+        else pd.read_csv(test_path, usecols=["molecule_smiles"])
+    smiles = df["molecule_smiles"].drop_duplicates().tolist()
+    print(f"  {len(smiles):,} unique test molecules")
+
+    if cache is not None:
+        cache.store_dataset("belka_test_unique_smiles", smiles, np.array([]))
+    return smiles
+
+
+def _load_belka() -> tuple[np.ndarray, np.ndarray, list[str]]:
+    import os
+
+    import pandas as pd
+
+    from .fingerprints import compute_fingerprints
 
     train_path = belka_download()
     print(f"  Loading {train_path}...")
@@ -358,11 +372,7 @@ def _load_belka() -> tuple[np.ndarray, np.ndarray, list[str]]:
 
     print(f"  {len(smiles_list):,} unique molecules; computing Morgan fingerprints "
           f"across {os.cpu_count()} cores...")
-    fp_arrays: list[np.ndarray | None] = []
-    with ProcessPoolExecutor() as executor:
-        for fp in tqdm(executor.map(belka_fp_worker, smiles_list, chunksize=256),
-                       total=len(smiles_list)):
-            fp_arrays.append(fp)
+    fp_arrays = compute_fingerprints(smiles_list, progress=True)
 
     keep = [i for i, fp in enumerate(fp_arrays) if fp is not None]
     if len(keep) < len(fp_arrays):

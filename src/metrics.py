@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
 import torch
@@ -35,20 +35,35 @@ def _shuffle_sample(sample: Any, rng: np.random.Generator) -> Any:
 
 
 
-def _gpd_tail_estimate(
+class GpdTailFit:
+    """A GPD peaks-over-threshold fit to the lower tail of a null-score sample.
+
+    `sorted_scores` (ascending) and `n` back the empirical branch (t >= u);
+    `u`/`shape`/`scale`/`p_below_u` back the extrapolated GPD branch (t < u).
+    See `fit_gpd_tail` for how these are estimated.
+    """
+    __slots__ = ("sorted_scores", "n", "u", "shape", "scale", "p_below_u")
+
+    def __init__(self, sorted_scores: np.ndarray, u: float, shape: float, scale: float, p_below_u: float):
+        self.sorted_scores = sorted_scores
+        self.n = len(sorted_scores)
+        self.u = u
+        self.shape = shape
+        self.scale = scale
+        self.p_below_u = p_below_u
+
+
+def fit_gpd_tail(
     scores: np.ndarray,
-    threshold: float,
     tail_quantile: float = 0.01,
     min_tail_samples: int = 1000,
-) -> float | None:
-    """Estimate P(score <= threshold) by fitting a Generalized Pareto Distribution
-    to the lower tail of *scores* and extrapolating below the sampled range.
+) -> GpdTailFit | None:
+    """Fit a Generalized Pareto Distribution to the lower tail of *scores*.
 
     Peaks-over-threshold: pick a tail cutoff `u` at the `tail_quantile` (well
-    above the true `threshold`, so it's estimated from plenty of samples),
-    fit a GPD to the excesses `u - score` for score < u, then extrapolate the
-    fitted tail down to `threshold`. Returns None if the fit is infeasible
-    (e.g. too few tail samples, or `threshold` isn't actually in the tail).
+    above the region we ultimately care about, so it's estimated from plenty
+    of samples), then fit a GPD to the excesses `u - score` for score < u.
+    Returns None if the fit is infeasible (too few tail samples).
     """
     from scipy.stats import genpareto
 
@@ -60,10 +75,6 @@ def _gpd_tail_estimate(
 
     sorted_scores = np.sort(scores)
     u = sorted_scores[k - 1]
-    if threshold >= u:
-        # Threshold is inside the well-sampled region — no need to extrapolate.
-        # Let the caller fall back to its own n_hits/n_samples count.
-        return None
 
     # Reflect the left tail into the right-tail convention GPD expects:
     # Y = u - X, conditional on X < u, so Y >= 0 and larger Y <=> smaller
@@ -78,17 +89,121 @@ def _gpd_tail_estimate(
 
     # P(X < u) estimated directly from the (non-rare) empirical fraction below u.
     p_below_u = k / n
+    return GpdTailFit(sorted_scores, float(u), float(shape), float(scale), p_below_u)
+
+
+def _gpd_tail_estimate(
+    scores: np.ndarray,
+    threshold: float,
+    tail_quantile: float = 0.01,
+    min_tail_samples: int = 1000,
+) -> float | None:
+    """Estimate P(score <= threshold) via `fit_gpd_tail`, extrapolating below
+    the sampled range. Returns None if the fit is infeasible, or `threshold`
+    isn't actually in the tail (caller should fall back to its own
+    n_hits/n_samples count in that case).
+    """
+    from scipy.stats import genpareto
+
+    fit = fit_gpd_tail(scores, tail_quantile=tail_quantile, min_tail_samples=min_tail_samples)
+    if fit is None or threshold >= fit.u:
+        return None
+
     # genpareto.sf(y) = P(Y >= y | X < u), i.e. the conditional GPD survival
     # function evaluated at the excess corresponding to `threshold`:
     #   S(y) = (1 + xi * y / sigma) ** (-1 / xi)          if xi != 0
     #   S(y) = exp(-y / sigma)                            if xi == 0
-    excess_needed = u - threshold
-    p_given_tail = genpareto.sf(excess_needed, shape, loc=0, scale=scale)
+    excess_needed = fit.u - threshold
+    p_given_tail = genpareto.sf(excess_needed, fit.shape, loc=0, scale=fit.scale)
     # Law of total probability (valid since threshold < u, so X <= threshold
     # implies X < u — the event is entirely inside the conditioning set):
     #   P(X <= threshold) = P(X < u) * P(Y >= u - threshold | X < u)
     #                     = p_below_u * p_given_tail
-    return float(p_below_u * p_given_tail)
+    return float(fit.p_below_u * p_given_tail)
+
+
+def null_model_cdf(
+    scores: np.ndarray,
+    tail_quantile: float = 0.01,
+    min_tail_samples: int = 1000,
+) -> Callable[[np.ndarray], np.ndarray]:
+    """Build p0(t) = P(null distance <= t), callable at many t at once.
+
+    Reuses the same GPD peaks-over-threshold fit as `_gpd_tail_estimate`
+    (via `fit_gpd_tail`) for t below the tail cutoff `u`, and the empirical
+    CDF (fraction of *scores* <= t) elsewhere. Falls back to a pure empirical
+    CDF everywhere if the GPD fit is infeasible.
+    """
+    from scipy.stats import genpareto
+
+    sorted_scores = np.sort(scores)
+    n = len(sorted_scores)
+    fit = fit_gpd_tail(scores, tail_quantile=tail_quantile, min_tail_samples=min_tail_samples)
+
+    def p0(t: Any) -> np.ndarray:
+        t = np.atleast_1d(np.asarray(t, dtype=np.float64))
+        empirical = np.searchsorted(sorted_scores, t, side="right") / n
+        if fit is None:
+            return empirical
+        tail_mask = t < fit.u
+        if not np.any(tail_mask):
+            return empirical
+        excess_needed = fit.u - t[tail_mask]
+        p_given_tail = genpareto.sf(excess_needed, fit.shape, loc=0, scale=fit.scale)
+        out = empirical.copy()
+        out[tail_mask] = fit.p_below_u * p_given_tail
+        return out
+
+    return p0
+
+
+def null_model_scores(
+    data: list[Any],
+    cfg: "DatasetConfig",
+    n_samples: int = 10_000_000,
+    seed: int = 42,
+    shuffle: bool = True,
+) -> np.ndarray:
+    """Raw null distances: pair up random samples and score every pair with
+    the dataset's kernel.
+
+    This is the sampling step shared by `null_model` (which collapses it to
+    a single P(distance <= threshold) estimate) and anything that needs the
+    full null distribution, e.g. a CDF usable at arbitrary distances.
+
+    shuffle=True (default) element-shuffles each sampled item before scoring
+    — appropriate for sequences (peptides/DNA), where a shuffled sequence is
+    still a syntactically valid "no real structure" random baseline with the
+    same composition. shuffle=False instead pairs up random REAL (unshuffled)
+    items directly — needed for combinatorial libraries built on a shared
+    scaffold (e.g. BELKA), where shuffling a fingerprint's bit positions
+    destroys all chemical structure and produces something far MORE
+    dissimilar than two real, otherwise-unrelated library members actually
+    are. Verified empirically on BELKA: the shuffled-fingerprint null lands
+    in Tanimoto distance [0.92, 1.0] while real random train-pair distances
+    land in [0.17, 0.75] — almost entirely disjoint ranges, with every
+    observed train/production nearest-neighbor distance falling *below* the
+    shuffled null's minimum (i.e. p_0 underflows to 0 everywhere it's
+    actually evaluated, collapsing every u_y to the same value).
+    """
+    rng   = np.random.default_rng(seed)
+    idx_a = rng.integers(0, len(data), size=n_samples)
+    idx_b = rng.integers(0, len(data), size=n_samples)
+    if shuffle:
+        list_a = [_shuffle_sample(data[i], rng) for i in idx_a]
+        list_b = [_shuffle_sample(data[i], rng) for i in idx_b]
+    else:
+        list_a = [data[i] for i in idx_a]
+        list_b = [data[i] for i in idx_b]
+    print("  [dim]Running kernel...[/]")
+    return np.asarray(
+        zip_kernel(
+            cfg.modality, list_a, list_b,
+            n_threads=0, progress=True,
+            **cfg.kernel_params,
+        ),
+        dtype=np.float64,
+    )
 
 
 def null_model(
@@ -115,20 +230,7 @@ def null_model(
     falls back to the empirical count (or a Jeffreys pseudocount if there are
     zero hits and the GPD fit is infeasible) if the tail fit can't be done.
     """
-    rng   = np.random.default_rng(seed)
-    idx_a = rng.integers(0, len(data), size=n_samples)
-    idx_b = rng.integers(0, len(data), size=n_samples)
-    list_a = [_shuffle_sample(data[i], rng) for i in idx_a]
-    list_b = [_shuffle_sample(data[i], rng) for i in idx_b]
-    print("  [dim]Running kernel...[/]")
-    scores = np.asarray(
-        zip_kernel(
-            cfg.modality, list_a, list_b,
-            n_threads=0, progress=True,
-            **cfg.kernel_params,
-        ),
-        dtype=np.float64,
-    )
+    scores = null_model_scores(data, cfg, n_samples=n_samples, seed=seed)
 
     if use_gpd_tail:
         gpd_p = _gpd_tail_estimate(

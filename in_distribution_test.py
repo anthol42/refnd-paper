@@ -26,7 +26,6 @@ Usage:
 
 import argparse
 import json
-from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable
@@ -39,8 +38,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import balanced_accuracy_score
 
 from src.cache import CacheStore
-from src.datasets import DATASETS, belka_fp_worker, load_dataset
+from src.datasets import DATASETS, load_dataset
 from src.embeddings import compute_embeddings
+from src.fingerprints import compute_fingerprints
 from refnd.core import HNSWState, INWeightType, LeidenObjective, find_communities, partition
 from refnd.kernels import KernelVariant
 
@@ -83,8 +83,7 @@ def _to_kernel_items(dataset: list[str], modality: KernelVariant) -> list[Any]:
 
     from refnd.utils import BitFingerprint
 
-    with ProcessPoolExecutor() as executor:
-        fps = list(executor.map(belka_fp_worker, dataset, chunksize=256))
+    fps = compute_fingerprints(dataset)
     missing = sum(1 for fp in fps if fp is None)
     if missing:
         raise ValueError(f"{missing} SMILES could not be parsed by RDKit")
