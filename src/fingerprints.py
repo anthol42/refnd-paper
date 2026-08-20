@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import multiprocessing
 import os
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -13,6 +14,15 @@ import numpy as np
 # the cgroup surfaces as BrokenProcessPool. sched_getaffinity respects the
 # cpuset Slurm sets, so this stays within what was actually allocated.
 _MAX_WORKERS = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count()
+
+# refnd (a Rust/PyO3 extension imported by src/datasets.py before this
+# module is used) may already have live native threads in this process. The
+# default "fork" start method duplicates the parent's memory and those
+# threads' lock state, but only the forking thread survives into the child
+# -- a fork-safety hazard that can kill a native worker (RDKit) immediately,
+# regardless of input size or memory. "spawn" starts each worker as a fresh
+# interpreter instead, avoiding inherited native thread/lock state.
+_MP_CONTEXT = multiprocessing.get_context("spawn")
 
 
 def belka_fp_worker(smiles: str) -> np.ndarray | None:
@@ -35,7 +45,7 @@ def compute_fingerprints(
     all available CPU cores. Entries are None where RDKit couldn't parse the
     SMILES.
     """
-    with ProcessPoolExecutor(max_workers=_MAX_WORKERS) as executor:
+    with ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT) as executor:
         results = executor.map(belka_fp_worker, smiles, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
@@ -58,7 +68,7 @@ def compute_bitfingerprints(
     """
     from refnd.utils import BitFingerprint
 
-    with ProcessPoolExecutor(max_workers=_MAX_WORKERS) as executor:
+    with ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT) as executor:
         results = executor.map(belka_fp_worker, smiles, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
@@ -110,7 +120,7 @@ def compute_and_cache_fingerprints_to_disk(
     n_written = 0
     n_missing = 0
     consumed = resume_from
-    with open(out_path, mode) as out_f, ProcessPoolExecutor(max_workers=_MAX_WORKERS) as executor:
+    with open(out_path, mode) as out_f, ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT) as executor:
         results = executor.map(belka_fp_worker, remaining, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
