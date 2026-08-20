@@ -18,7 +18,6 @@ import json
 import math
 import time
 from pathlib import Path
-import numpy as np
 
 from rich import print
 
@@ -26,30 +25,18 @@ from src.cache import CacheStore
 from src.datasets import DATASETS, SCALING_DATASET_KEY, prepare_hnsw_input
 from src.metrics import pct_edges_recovered
 from refnd.core import HNSWState, exact_edges
-from scaling_benchmark import _load_items, _subset_path, _write_fasta
+from scaling_benchmark import _load_items, _prepare_subsets, _subset_path
 
-DEFAULT_SIZES = [5_000, 25_000, 125_000]
+DEFAULT_SIZES: dict[str, list[int]] = {
+    "atlas": [5_000, 25_000, 125_000],
+    "belka": [25_000, 125_000, 625_000],
+}
 DEBUG_SIZES   = [5_000, 25_000]
 SEED = 42
 
 # Fixed default HNSW params (mirrors main.py's argparse defaults) — everything
 # except ef_construction is held constant across sizes.
 BASE_EF_CONSTRUCTION = 32
-
-
-def _prepare_subsets(dataset: str, data: list[str], sizes: list[int]) -> None:
-    Path(".cache/scaling_tmp").mkdir(parents=True, exist_ok=True)
-    rng = np.random.default_rng(SEED)
-    for size in sizes:
-        path = _subset_path(dataset, size)
-        if path.exists():
-            continue
-        if size > len(data):
-            print(f"  [yellow]Skipping size {size:,}: only {len(data):,} samples available[/]")
-            continue
-        idx = rng.choice(len(data), size=size, replace=False)
-        _write_fasta(path, [data[i] for i in idx])
-        print(f"  Cached subset of {size:,} → {path}")
 
 
 def _read_subset(path: Path) -> list[str]:
@@ -97,37 +84,70 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Effect of dataset size on HNSW edge recall")
     parser.add_argument("--dataset", choices=["atlas", "belka"], default="atlas")
     parser.add_argument("--sizes", type=str, default=None,
-                        help="Comma-separated sizes, default: 5000,25000,125000")
+                        help="Comma-separated sizes, default: 5000,25000,125000 (atlas) / "
+                             "25000,125000,625000 (belka)")
     parser.add_argument("--debug", action="store_true",
                         help="Only use 5K/25K sizes for a fast smoke test (overrides --sizes)")
+    parser.add_argument("--size", type=int, default=None,
+                        help="Run only this size (default: loop over all --sizes). The "
+                             "log-scaled ef_construction baseline is still taken from the "
+                             "full --sizes list, not just this one size.")
+    parser.add_argument("--output", default=None,
+                        help="Results file path (default: results/edge_recall_scaling_{dataset}.json). "
+                             "Use a distinct path per task to avoid races when running in parallel.")
+    prepare_group = parser.add_mutually_exclusive_group()
+    prepare_group.add_argument("--prepare-only", action="store_true",
+                        help="Only load the dataset and write subset files, then exit "
+                             "(no benchmarking). Run this once before a parallel array "
+                             "to avoid concurrent tasks racing to write the same subset file.")
+    prepare_group.add_argument("--no-prepare", action="store_true",
+                        help="Skip subset preparation and never fall back to it; crash if "
+                             "a required subset file is missing. Use in array tasks once "
+                             "--prepare-only has already built every subset.")
     args = parser.parse_args()
 
-    if args.debug:
-        sizes = DEBUG_SIZES
-    elif args.sizes is not None:
-        sizes = [int(s) for s in args.sizes.split(",")]
-    else:
-        sizes = DEFAULT_SIZES
-    baseline_size = sizes[0]
-
     dataset = args.dataset
+
+    if args.debug:
+        all_sizes = DEBUG_SIZES
+    elif args.sizes is not None:
+        all_sizes = [int(s) for s in args.sizes.split(",")]
+    else:
+        all_sizes = DEFAULT_SIZES[dataset]
+    # Baseline for the log-scale factor is always the smallest size in the
+    # full configured list, regardless of which size(s) this run computes --
+    # it's a fixed reference point, not something derived from other tasks.
+    baseline_size = all_sizes[0]
+    run_sizes = [args.size] if args.size is not None else all_sizes
+
     cfg     = DATASETS[SCALING_DATASET_KEY[dataset]]
     cache   = CacheStore()
+    out_path = Path(args.output) if args.output else Path(f"results/edge_recall_scaling_{dataset}.json")
 
     print(f"[bold][orange2]=== Edge Recall vs. Dataset Size ({dataset}) ===[/][/]")
-    print(f"Loading {dataset} dataset...")
-    all_items = _load_items(dataset, cache)
-    print(f"  {len(all_items):,} items available")
 
-    print("\nPreparing subsets...")
-    _prepare_subsets(dataset, all_items, sizes)
+    if not args.no_prepare:
+        print(f"Loading {dataset} dataset...")
+        all_items = _load_items(dataset, cache)
+        print(f"  {len(all_items):,} items available")
+
+        print("\nPreparing subsets...")
+        _prepare_subsets(dataset, all_items, run_sizes)
+
+        if args.prepare_only:
+            print("\n[bold]Subsets prepared, exiting (--prepare-only).[/]")
+            return
 
     records = []
 
     print(f"\n[green]-- Fixed ef_construction={BASE_EF_CONSTRUCTION} --[/]")
-    for size in sizes:
+    for size in run_sizes:
         path = _subset_path(dataset, size)
         if not path.exists():
+            if args.no_prepare:
+                raise FileNotFoundError(
+                    f"Subset not found: {path} (--no-prepare set; run with --prepare-only first)"
+                )
             print(f"  [dim]Skipping size {size:,}: subset not available[/]")
             continue
         items = _read_subset(path)
@@ -138,12 +158,12 @@ def main() -> None:
               f"build={record['hnsw_build_time_s']:.2f}s")
 
     print(f"\n[green]-- ef_construction scaled by log(n)/log({baseline_size:,}) --[/]")
-    for size in sizes:
-        path = _subset_path(dataset, size)
-        if not path.exists():
-            continue
+    for size in run_sizes:
         if size == baseline_size:
             continue  # scale factor is 1.0 — identical to the fixed-ef baseline above
+        path = _subset_path(dataset, size)
+        if not path.exists():
+            continue  # already reported (or raised) in the fixed-ef pass above
         ef_scaled = round(BASE_EF_CONSTRUCTION * math.log(size) / math.log(baseline_size))
         items = _read_subset(path)
         record = _build_and_recall(dataset, cfg, cache, size, items, ef_scaled)
@@ -153,7 +173,6 @@ def main() -> None:
               f"recall={record['pct_edges_recovered']:.4f}  "
               f"build={record['hnsw_build_time_s']:.2f}s")
 
-    out_path = Path(f"results/edge_recall_scaling_{dataset}.json")
     out_path.parent.mkdir(exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(records, f, indent=2)
