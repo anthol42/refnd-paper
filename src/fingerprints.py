@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+import os
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import numpy as np
+
+# os.cpu_count() reports the node's total physical CPUs, not the cpuset a
+# Slurm job is actually confined to via --cpus-per-task -- on a shared
+# cluster node that oversubscribes ProcessPoolExecutor's default worker
+# count far past the job's --mem budget, and a worker getting OOM-killed by
+# the cgroup surfaces as BrokenProcessPool. sched_getaffinity respects the
+# cpuset Slurm sets, so this stays within what was actually allocated.
+_MAX_WORKERS = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count()
 
 
 def belka_fp_worker(smiles: str) -> np.ndarray | None:
@@ -26,7 +35,7 @@ def compute_fingerprints(
     all available CPU cores. Entries are None where RDKit couldn't parse the
     SMILES.
     """
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=_MAX_WORKERS) as executor:
         results = executor.map(belka_fp_worker, smiles, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
@@ -49,7 +58,7 @@ def compute_bitfingerprints(
     """
     from refnd.utils import BitFingerprint
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=_MAX_WORKERS) as executor:
         results = executor.map(belka_fp_worker, smiles, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
@@ -101,7 +110,7 @@ def compute_and_cache_fingerprints_to_disk(
     n_written = 0
     n_missing = 0
     consumed = resume_from
-    with open(out_path, mode) as out_f, ProcessPoolExecutor() as executor:
+    with open(out_path, mode) as out_f, ProcessPoolExecutor(max_workers=_MAX_WORKERS) as executor:
         results = executor.map(belka_fp_worker, remaining, chunksize=chunksize)
         if progress:
             from tqdm import tqdm

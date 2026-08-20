@@ -4,9 +4,9 @@
 #SBATCH --error=logs/%x_%A_%a.log
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=32G
+#SBATCH --mem=64G
 #SBATCH --time=1-00:00:00
-#SBATCH --array=0-5
+#SBATCH --array=0-2
 
 # One (dataset, size) pair per array task -- each task runs both the fixed-ef
 # and log-scaled-ef HNSW builds for that size (see edge_recall_scaling.py's
@@ -26,8 +26,6 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")"
-
 export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Must match scaling_benchmark_prepare.sbatch -- that job populated the
@@ -37,9 +35,9 @@ export REFND_CACHE_DIR=/home/lavertu/scratch/refnd_cache
 mkdir -p logs results/edge_recall
 
 TASKS=(
-    "atlas 5000"
-    "atlas 25000"
-    "atlas 125000"
+#    "atlas 5000"
+#    "atlas 25000"
+#    "atlas 125000"
     "belka 25000"
     "belka 125000"
     "belka 625000"
