@@ -78,9 +78,9 @@ run uv run python hyperparameters.py --dataset prom_core_all        --ef-constru
 run uv run python hyperparameters.py --dataset prom_core_all        --ef-construction 64 --ef-init 1 --keep-pruned-connections --use-heuristic --strict-ef --leiden-objective cpm
 run uv run python hyperparameters.py --dataset prom_core_all        --ef-construction 64 --ef-init 1 --keep-pruned-connections --use-heuristic --threshold-based-neighbourhood --leiden-objective cpm
 
+# --> Resume here
 # Scaling experiment (runtime/memory vs. dataset size, atlas + belka)
 run uv run python scaling_benchmark.py --dataset atlas
-# --> Resume here
 run uv run python scaling_benchmark.py --dataset belka
 
 # Per-stage timing breakdown of the refnd pipeline
@@ -88,7 +88,7 @@ run uv run python debug_scaling_refnd.py
 
 # Effect of dataset size (and ef_construction) on HNSW edge recall
 run uv run python edge_recall_scaling.py --dataset atlas
-run uv run python edge_recall_scaling.py --dataset belka --sizes 200000,1000000,5000000
+run uv run python edge_recall_scaling.py --dataset belka --sizes 25000,125000,625000
 
 # In-distribution test (refnd + hestia split methods) for every dataset with an encoder
 run uv run python in_distribution_test.py --dataset dbaasp        --method both

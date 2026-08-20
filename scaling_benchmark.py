@@ -35,7 +35,7 @@ Size = Union[int, str]     # int for a subsample size, or the literal "full"
 
 DATASET_SIZES: dict[str, list[Size]] = {
     "atlas": [5_000, 25_000, 125_000, 625_000, 3_125_000],
-    "belka": [1_000_000, 5_000_000, 25_000_000, "full"],
+    "belka": [25_000, 125_000, 625_000, 3_125_000, 15_625_000],
 }
 
 DEBUG_SIZES: list[Size] = [5_000, 25_000]

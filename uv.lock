@@ -33,6 +33,7 @@ dependencies = [
     { name = "huggingface-hub", extra = ["hf-xet"] },
     { name = "jupyter" },
     { name = "kagglehub" },
+    { name = "lmdb" },
     { name = "matplotlib" },
     { name = "python-dotenv" },
     { name = "qmap-benchmark" },
@@ -70,11 +71,12 @@ requires-dist = [
     { name = "huggingface-hub", extras = ["hf-xet"] },
     { name = "jupyter", specifier = ">=1.1.1" },
     { name = "kagglehub", specifier = ">=0.3.0" },
+    { name = "lmdb", specifier = ">=2.3.0" },
     { name = "matplotlib", specifier = ">=3.11.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "qmap-benchmark", specifier = ">=0.1.1" },
     { name = "rdkit", specifier = ">=2026.3.3" },
-    { name = "refnd", directory = "../refnd/py" },
+    { name = "refnd", specifier = ">=0.0.3" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "scipy", specifier = ">=1.16.0" },
     { name = "selfies", specifier = ">=2.2.0" },
@@ -1430,6 +1432,20 @@ wheels = [
 ]
 
 [[package]]
+name = "lmdb"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/0b/17f271b2d2d314da9c9bc7620676ede1feca5f565f3a46045319351f7bc2/lmdb-2.3.0.tar.gz", hash = "sha256:260f443640ee2da3cfd059a84258659319ff39ca912c16bf9748c324076b9d09", size = 954381, upload-time = "2026-07-12T15:46:30.534Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/e8/d8594c13c81652d313e5df0cbade98a3fa47de6c14e46aec5eed02a2ca5c/lmdb-2.3.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:93de120dec1ec982b80852c958d11242b78c0972a526a839cc5a65b44d22c8f7", size = 120486, upload-time = "2026-07-12T15:46:06.493Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/d3/c91996eb4ffeb1537710c4bf3492249b01abd56c75ec34a5b2179de4b91b/lmdb-2.3.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:d94cd8515ea767115ac2ee302ae83cde3843425901fdc3bfa9fb08980299c023", size = 120032, upload-time = "2026-07-12T15:46:07.718Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/0f/536d296dd90418533ccd277a20836c753f2f51d127a6e32e53c8653fbd45/lmdb-2.3.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:1633f4700664436f2d71bb029bce9bdcaedcd2294c97ba853c6870c973de0bdd", size = 344681, upload-time = "2026-07-12T15:46:09.017Z" },
+    { url = "https://files.pythonhosted.org/packages/79/45/1dc1ff9c998d08051728fef5f60eb31f8f9294a7bd80a786a6ae6917f2db/lmdb-2.3.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:f8d815c4f1ad38d048efeee395c935b8839ed244a1d74526c83e31c05faab3ec", size = 346786, upload-time = "2026-07-12T15:46:10.535Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/d4/1bd0b10a0d7408f2d6a4c49be9176287bdccc8c3951a96abfd8f61eb5ec1/lmdb-2.3.0-cp313-cp313-win_amd64.whl", hash = "sha256:f45e10949d0fc7a0cc4bc9b3bfe34d824b5a71330312289e43dc2638c26a9f13", size = 115087, upload-time = "2026-07-12T15:46:11.779Z" },
+    { url = "https://files.pythonhosted.org/packages/80/f9/a4d82dedaf2a9090bb44c5ab300158a22f4c26a30355c7ffb40f52503bc6/lmdb-2.3.0-cp313-cp313-win_arm64.whl", hash = "sha256:de099ca35b010fd0c5eed957e7ffda0aee32639fb7d12c0dadbb850be9c62dee", size = 114437, upload-time = "2026-07-12T15:46:12.867Z" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2508,18 +2524,14 @@ wheels = [
 
 [[package]]
 name = "refnd"
-source = { directory = "../refnd/py" }
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-docs = [
-    { name = "furo", marker = "python_full_version >= '3.12'", specifier = ">=2025.12.19" },
-    { name = "myst-parser", marker = "python_full_version >= '3.12'", specifier = ">=5.0.0" },
-    { name = "rdkit", specifier = ">=2026.3.3" },
-    { name = "sphinx", marker = "python_full_version >= '3.12'", specifier = ">=9.1.0" },
-    { name = "sphinx-autodoc-typehints", marker = "python_full_version >= '3.12'", specifier = ">=3.10.2" },
-    { name = "sphinx-llm", specifier = ">=0.4.1" },
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/77/cc/4ea3c9f2b3cbb0f2d9b46169fe8ba52655d5502ee3f65fc7bcdaefa714c5/refnd-0.0.3.tar.gz", hash = "sha256:8bf6678c758055dd1b21717a5a8be9d0c23afd90ef843334a312d813220e2b79", size = 231985, upload-time = "2026-08-19T20:29:42.396Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/97/a5baeb3b8880106f25dfd86fa4698d618fa1096b14495865e9dc7fcf0fee/refnd-0.0.3-cp313-cp313-macosx_10_14_x86_64.whl", hash = "sha256:ab35ed41683ca3cc52e30ac747221b7bb7e0ea055deea6325de52f0503b8e408", size = 3645090, upload-time = "2026-08-19T20:29:29.722Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/7d/8056ef460cfdd20dc1e1000e34c2275eca088cb8866736690174e2156dfe/refnd-0.0.3-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:0e43c41f45c4df9b3c6b7082cc9f8976f0ac892a179fa94f9c44a93ff8693282", size = 1984155, upload-time = "2026-08-19T20:29:31.184Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/7f/7e52d98cfad81f48bb6eda4db0e16b0db8ef24ae819c6e68a82df019f810/refnd-0.0.3-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:d390ab867a009db8283288ad6fc05fffbeb41854be173c2126492a63bbe864c9", size = 4439356, upload-time = "2026-08-19T20:29:32.75Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/b2/0cf1aa64c2a3e17dbcd7b1f8bfaedca7c46f61271a0d180acb3f7e5380ef/refnd-0.0.3-cp313-cp313-win_amd64.whl", hash = "sha256:8f5d8d7ef5223bb0ed344de6fe9adde92ba7685651d28139bf7730cdab382bc0", size = 3696915, upload-time = "2026-08-19T20:29:34.441Z" },
 ]
 
 [[package]]

@@ -12,11 +12,12 @@ dependencies = [
     "huggingface-hub[hf-xet]",
     "jupyter>=1.1.1",
     "kagglehub>=0.3.0",
+    "lmdb>=2.3.0",
     "matplotlib>=3.11.0",
     "python-dotenv>=1.0.0",
     "qmap-benchmark>=0.1.1",
     "rdkit>=2026.3.3",
-    "refnd",
+    "refnd>=0.0.3",
     "rich>=15.0.0",
     "scipy>=1.16.0",
     "selfies>=2.2.0",
@@ -40,7 +41,6 @@ torchvision = [
     { index = "pytorch-cpu", extra = "cpu" },
     { index = "pytorch-cu118", extra = "cuda" },
 ]
-refnd = { path = "../refnd/py" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
