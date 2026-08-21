@@ -1,0 +1,52 @@
+[
+  {
+    "size": 5000,
+    "n_edges": 488,
+    "build_s": 1.267,
+    "edges_s": 0.0,
+    "graph_s": 0.0,
+    "leiden_s": 0.005,
+    "partition_s": 0.0,
+    "total_s": 1.273
+  },
+  {
+    "size": 25000,
+    "n_edges": 11257,
+    "build_s": 13.754,
+    "edges_s": 0.0,
+    "graph_s": 0.0,
+    "leiden_s": 0.04,
+    "partition_s": 0.001,
+    "total_s": 13.795
+  },
+  {
+    "size": 125000,
+    "n_edges": 241019,
+    "build_s": 119.752,
+    "edges_s": 0.002,
+    "graph_s": 0.005,
+    "leiden_s": 0.232,
+    "partition_s": 0.006,
+    "total_s": 119.996
+  },
+  {
+    "size": 625000,
+    "n_edges": 4952131,
+    "build_s": 747.562,
+    "edges_s": 0.041,
+    "graph_s": 0.069,
+    "leiden_s": 2.212,
+    "partition_s": 0.034,
+    "total_s": 749.918
+  },
+  {
+    "size": 3125000,
+    "n_edges": 119833430,
+    "build_s": 3857.615,
+    "edges_s": 0.85,
+    "graph_s": 3.36,
+    "leiden_s": 40.0,
+    "partition_s": 0.892,
+    "total_s": 3902.717
+  }
+]

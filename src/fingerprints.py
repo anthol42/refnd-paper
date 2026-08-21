@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import faulthandler
 import multiprocessing
 import os
+import sys
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -25,17 +27,39 @@ _MAX_WORKERS = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") 
 _MP_CONTEXT = multiprocessing.get_context("spawn")
 
 
+def _init_worker() -> None:
+    """ProcessPoolExecutor initializer, run once per worker at startup.
+
+    A native crash (e.g. a segfault inside RDKit) kills the worker silently
+    from Python's perspective -- the parent only ever sees BrokenProcessPool,
+    with no indication of which worker, which input, or what signal. Enabling
+    faulthandler here makes a crashing worker dump a C-level stack trace to
+    its own stderr (captured by Slurm's --error redirect) right before it
+    dies, instead of leaving nothing to go on.
+    """
+    faulthandler.enable(file=sys.stderr)
+
+
 def belka_fp_worker(smiles: str) -> np.ndarray | None:
     """Top-level so it's picklable for ProcessPoolExecutor."""
     from rdkit import Chem
     from rdkit.Chem import rdFingerprintGenerator
 
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return None
-    morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
-    fp = morgan_gen.GetFingerprint(mol)
-    return np.array(fp, dtype=bool)
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
+        morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
+        fp = morgan_gen.GetFingerprint(mol)
+        return np.array(fp, dtype=bool)
+    except Exception:
+        # A native crash (segfault/abort) bypasses this entirely -- faulthandler
+        # (see _init_worker) is what catches that case. This is for ordinary
+        # Python-level exceptions, so at least the offending SMILES is on record
+        # before the exception propagates and (if it kills the worker) shows up
+        # to the parent as BrokenProcessPool.
+        print(f"[belka_fp_worker] failed on SMILES: {smiles!r}", file=sys.stderr, flush=True)
+        raise
 
 
 def compute_fingerprints(
@@ -45,7 +69,7 @@ def compute_fingerprints(
     all available CPU cores. Entries are None where RDKit couldn't parse the
     SMILES.
     """
-    with ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT) as executor:
+    with ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT, initializer=_init_worker) as executor:
         results = executor.map(belka_fp_worker, smiles, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
@@ -68,7 +92,7 @@ def compute_bitfingerprints(
     """
     from refnd.utils import BitFingerprint
 
-    with ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT) as executor:
+    with ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT, initializer=_init_worker) as executor:
         results = executor.map(belka_fp_worker, smiles, chunksize=chunksize)
         if progress:
             from tqdm import tqdm
@@ -120,7 +144,7 @@ def compute_and_cache_fingerprints_to_disk(
     n_written = 0
     n_missing = 0
     consumed = resume_from
-    with open(out_path, mode) as out_f, ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT) as executor:
+    with open(out_path, mode) as out_f, ProcessPoolExecutor(max_workers=_MAX_WORKERS, mp_context=_MP_CONTEXT, initializer=_init_worker) as executor:
         results = executor.map(belka_fp_worker, remaining, chunksize=chunksize)
         if progress:
             from tqdm import tqdm

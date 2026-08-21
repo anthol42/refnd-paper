@@ -1,0 +1,12 @@
+{
+  "refnd": {
+    "balanced_accuracy_mean": 0.5187500975738966,
+    "balanced_accuracy_std": 0.025047785481806254,
+    "n_failed_repeats": 0
+  },
+  "hestia": {
+    "balanced_accuracy_mean": NaN,
+    "balanced_accuracy_std": NaN,
+    "n_failed_repeats": 10
+  }
+}

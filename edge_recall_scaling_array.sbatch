@@ -6,7 +6,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=1-00:00:00
-#SBATCH --array=0-2
+# Ignored:
+# # SBATCH --array=0-2
 
 # One (dataset, size) pair per array task -- each task runs both the fixed-ef
 # and log-scaled-ef HNSW builds for that size (see edge_recall_scaling.py's
@@ -28,6 +29,16 @@ set -euo pipefail
 
 export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
+# Cap native BLAS/OpenMP thread pools to 1 per process -- parallelism here
+# already comes from process-level fan-out (ProcessPoolExecutor in
+# src/fingerprints.py, Rayon via RAYON_NUM_THREADS above); letting each
+# process additionally spawn up to the node's full core count in OpenMP
+# threads oversubscribes the job's cgroup and can crash workers (observed as
+# BrokenProcessPool) independent of memory usage.
+export OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
 # Must match scaling_benchmark_prepare.sbatch -- that job populated the
 # subset files this array reads with --no-prepare.
 export REFND_CACHE_DIR=/home/lavertu/scratch/refnd_cache
@@ -38,11 +49,12 @@ TASKS=(
 #    "atlas 5000"
 #    "atlas 25000"
 #    "atlas 125000"
-    "belka 25000"
-    "belka 125000"
+#    "belka 25000"
+#    "belka 125000"
     "belka 625000"
 )
 
+SLURM_ARRAY_TASK_ID=0
 read -r DATASET SIZE <<< "${TASKS[$SLURM_ARRAY_TASK_ID]}"
 OUTPUT="results/edge_recall/edge_recall_scaling_${DATASET}_${SIZE}.json"
 
