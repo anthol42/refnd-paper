@@ -42,7 +42,7 @@ def _init_worker() -> None:
 
 def belka_fp_worker(smiles: str) -> np.ndarray | None:
     """Top-level so it's picklable for ProcessPoolExecutor."""
-    from rdkit import Chem
+    from rdkit import Chem, DataStructs
     from rdkit.Chem import rdFingerprintGenerator
 
     try:
@@ -51,7 +51,13 @@ def belka_fp_worker(smiles: str) -> np.ndarray | None:
             return None
         morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
         fp = morgan_gen.GetFingerprint(mol)
-        return np.array(fp, dtype=bool)
+        # `np.array(fp, dtype=bool)` relies on ExplicitBitVect's buffer/sequence
+        # protocol, which segfaulted here on the cluster (faulthandler pinned the
+        # crash to this exact line). rdkit.DataStructs.ConvertToNumpyArray is
+        # RDKit's own documented conversion path and doesn't hit that code path.
+        arr = np.zeros((fp.GetNumBits(),), dtype=np.int8)
+        DataStructs.ConvertToNumpyArray(fp, arr)
+        return arr.astype(bool)
     except Exception:
         # A native crash (segfault/abort) bypasses this entirely -- faulthandler
         # (see _init_worker) is what catches that case. This is for ordinary
