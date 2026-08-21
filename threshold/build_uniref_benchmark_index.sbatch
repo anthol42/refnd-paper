@@ -3,9 +3,9 @@
 #SBATCH --output=logs/%x_%j.log
 #SBATCH --error=logs/%x_%j.log
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=128
-#SBATCH --mem=120G
-#SBATCH --time=3-00:00:00
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=128G
+#SBATCH --time=0-10:00:00
 
 # Vars:
 INPATH=/home/lavertu/scratch/refnd_data

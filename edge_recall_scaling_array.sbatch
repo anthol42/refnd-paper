@@ -4,10 +4,9 @@
 #SBATCH --error=logs/%x_%A_%a.log
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=64G
-#SBATCH --time=1-00:00:00
-# Ignored:
-# # SBATCH --array=0-2
+#SBATCH --mem=16G
+#SBATCH --time=0-01:00:00
+# SBATCH --array=0-1
 
 # One (dataset, size) pair per array task -- each task runs both the fixed-ef
 # and log-scaled-ef HNSW builds for that size (see edge_recall_scaling.py's
@@ -49,12 +48,11 @@ TASKS=(
 #    "atlas 5000"
 #    "atlas 25000"
 #    "atlas 125000"
-#    "belka 25000"
-#    "belka 125000"
-    "belka 625000"
+    "belka 25000"
+    "belka 125000"
+#    "belka 625000"
 )
 
-SLURM_ARRAY_TASK_ID=0
 read -r DATASET SIZE <<< "${TASKS[$SLURM_ARRAY_TASK_ID]}"
 OUTPUT="results/edge_recall/edge_recall_scaling_${DATASET}_${SIZE}.json"
 

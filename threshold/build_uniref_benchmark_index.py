@@ -133,9 +133,14 @@ def encode_and_save(seqs: Iterable[str], patterns: SWPatternSet, out_path: Path)
 def atomic_save(save_fn, out_path: Path) -> None:
     """Calls save_fn(str(tmp_path)) then renames tmp_path onto out_path, so a
     crash mid-save can't leave a partial file at out_path that a resumed run
-    would mistake for a completed stage."""
+    would mistake for a completed stage.
+
+    tmp_path keeps out_path's real extension (just prefixed with "tmp_")
+    rather than appending ".tmp" -- some save_fns (e.g. EdgeStore.save)
+    infer the save format from the path's extension, so a ".tmp" suffix
+    made them fail with "unknown extension '.tmp'"."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = out_path.with_name(out_path.name + ".tmp")
+    tmp_path = out_path.with_name(f"tmp_{out_path.name}")
     save_fn(str(tmp_path))
     tmp_path.replace(out_path)
 
