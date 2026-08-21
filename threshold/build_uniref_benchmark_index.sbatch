@@ -34,13 +34,10 @@ set -euo pipefail
 # --cpus-per-task above exactly.
 export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-# $0 is this script *file*, not a directory -- `cd $0/..` fails outright
-# ("Not a directory") since you can't descend into a file to go `..` from
-# it, which under `set -e` would kill the job before it does anything.
-# dirname first, then go up one level from the script's own directory
-# (threshold/) to the repo root -- works regardless of the submission cwd
-# or whether $0 ends up relative or absolute.
-cd "$(dirname "$0")/.."
+cd "$SLURM_SUBMIT_DIR"
+
+current_dir="$(pwd)"
+echo "$current_dir"
 
 mkdir -p "$OUTPATH"
 
