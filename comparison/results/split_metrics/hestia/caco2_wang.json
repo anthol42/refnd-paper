@@ -1,0 +1,7 @@
+{
+  "method": "hestia",
+  "dataset": "caco2_wang",
+  "seed": null,
+  "seconds": 0.77,
+  "peak_rss_mb": 286.2
+}

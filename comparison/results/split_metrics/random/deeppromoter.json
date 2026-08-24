@@ -1,0 +1,7 @@
+{
+  "method": "random",
+  "dataset": "deeppromoter",
+  "seed": null,
+  "seconds": 0.03,
+  "peak_rss_mb": 216.5
+}

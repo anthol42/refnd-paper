@@ -1,0 +1,7 @@
+{
+  "method": "datasail",
+  "dataset": "ames",
+  "seed": 2,
+  "seconds": 249.93,
+  "peak_rss_mb": 3190.8
+}

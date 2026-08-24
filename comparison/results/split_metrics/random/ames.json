@@ -1,0 +1,7 @@
+{
+  "method": "random",
+  "dataset": "ames",
+  "seed": null,
+  "seconds": 0.04,
+  "peak_rss_mb": 131.9
+}

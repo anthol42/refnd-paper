@@ -1,0 +1,7 @@
+{
+  "method": "datasail",
+  "dataset": "lipophilicity",
+  "seed": 7,
+  "seconds": 1017.58,
+  "peak_rss_mb": 1330.0
+}

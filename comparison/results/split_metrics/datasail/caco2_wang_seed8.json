@@ -1,0 +1,7 @@
+{
+  "method": "datasail",
+  "dataset": "caco2_wang",
+  "seed": 8,
+  "seconds": 1009.34,
+  "peak_rss_mb": 633.9
+}
