@@ -254,6 +254,9 @@ def main() -> None:
     print("\n[bold][orange2]=== Stage 3: extend with benchmark datasets ===[/][/]")
     if args.extended_index_out.exists():
         print(f"  [dim]Loading cached {args.extended_index_out}[/]")
+        del hnsw  # drop the stage-2 (uniref-only) index before loading the
+                  # extended one -- otherwise both full graphs are resident
+                  # in memory at once during the load call below.
         all_seqs = itertools.chain(load_sequences_stream(args.uniref_sequences_out),
                                     load_sequences_stream(args.benchmark_sequences_out))
         hnsw = HNSWState.load(KernelVariant.ProtSpam, str(args.extended_index_out), all_seqs, **kernel_kwargs)
