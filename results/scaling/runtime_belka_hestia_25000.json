@@ -1,0 +1,9 @@
+[
+  {
+    "method": "hestia",
+    "size": 25000,
+    "runtime_s": 192.634,
+    "peak_mem_mb": 843.56,
+    "status": "ok"
+  }
+]

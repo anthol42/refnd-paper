@@ -1,0 +1,9 @@
+[
+  {
+    "method": "refnd",
+    "size": 5000,
+    "runtime_s": 5.687,
+    "peak_mem_mb": 559.87,
+    "status": "ok"
+  }
+]

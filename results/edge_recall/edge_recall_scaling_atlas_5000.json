@@ -1,0 +1,9 @@
+[
+  {
+    "size": 5000,
+    "ef_construction": 32,
+    "pct_edges_recovered": 0.941398865784499,
+    "hnsw_build_time_s": 1.961,
+    "scaled": false
+  }
+]
