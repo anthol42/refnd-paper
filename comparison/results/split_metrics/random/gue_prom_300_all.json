@@ -1,0 +1,7 @@
+{
+  "method": "random",
+  "dataset": "gue_prom_300_all",
+  "seed": null,
+  "seconds": 0.23,
+  "peak_rss_mb": 216.5
+}

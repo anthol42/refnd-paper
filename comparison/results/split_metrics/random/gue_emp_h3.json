@@ -1,0 +1,7 @@
+{
+  "method": "random",
+  "dataset": "gue_emp_h3",
+  "seed": null,
+  "seconds": 0.07,
+  "peak_rss_mb": 216.5
+}

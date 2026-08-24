@@ -1,0 +1,7 @@
+{
+  "method": "datasail",
+  "dataset": "cyp2c19_veith",
+  "seed": 8,
+  "seconds": 1105.4,
+  "peak_rss_mb": 9061.7
+}

@@ -1,0 +1,7 @@
+{
+  "method": "mmseqs2",
+  "dataset": "dbaasp_amp",
+  "seed": null,
+  "seconds": 36.54,
+  "peak_rss_mb": 931.3
+}
