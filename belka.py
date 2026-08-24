@@ -22,10 +22,9 @@ Splitting the phases removes that ambiguity and keeps each phase's peak independ
 
 The index itself is built with `keep_all_edges=False` and `cache_capacity=0`: BELKA's
 combinatorial synthon-sharing structure makes the raw below-threshold proximity-edge count
-grow superlinearly with dataset size (measured ~3.8 avg degree at 100K molecules vs. ~18.9 at
-500K, at threshold=0.4) — recording all of them would blow far past available memory. The
-bounded HNSW graph links (m_max0/m_max) are unaffected by that density and stay a fixed cost
-per node.
+grow superlinearly with dataset size — recording all of them would blow far past available
+memory. The bounded HNSW graph links (m_max0/m_max) are unaffected by that density and stay
+a fixed cost per node.
 
 `strict_ef=True` is required for the same reason. In search_layer.rs, the
 per-layer candidate set is only trimmed back to `ef` once its worst member's

@@ -5,22 +5,23 @@ Usage:
     uv run python scaling_benchmark.py --dataset belka
 
 Each method in METHODS is a standalone Python script that takes the dataset
-key and the input subset file as positional arguments. The orchestrator runs
-it under /usr/bin/time to capture true peak RSS including Rust heap allocations.
+key and the input subset file as positional arguments. The orchestrator polls
+the subprocess's full process tree via psutil to capture true peak RSS
+including Rust heap allocations.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import platform
-import re
 import subprocess
+import threading
 import time
 from pathlib import Path
 from typing import Union
 
 import numpy as np
+import psutil
 from rich import print
 
 from src.cache import CacheStore
@@ -118,45 +119,63 @@ def _save_results(path: Path, records: list[dict]) -> None:
 
 # ── Subprocess runner ──────────────────────────────────────────────────────────
 
-_IS_MACOS = platform.system() == "Darwin"
-_TIME_FLAG = "-l" if _IS_MACOS else "-v"
+_RSS_POLL_INTERVAL_S = 0.2
 
 
-def _parse_peak_rss_bytes(stderr: str) -> int | None:
-    """Parse peak RSS from /usr/bin/time stderr (bytes on macOS, kbytes on Linux)."""
-    if _IS_MACOS:
-        m = re.search(r"(\d+)\s+maximum resident set size", stderr)
-        return int(m.group(1)) if m else None
-    else:
-        m = re.search(r"Maximum resident set size \(kbytes\):\s*(\d+)", stderr)
-        return int(m.group(1)) * 1024 if m else None
+def _tree_rss_bytes(pid: int) -> int:
+    """Sum RSS across a process and all its live descendants (e.g. uv's child python)."""
+    try:
+        proc = psutil.Process(pid)
+    except psutil.NoSuchProcess:
+        return 0
+    total = 0
+    for p in [proc, *proc.children(recursive=True)]:
+        try:
+            total += p.memory_info().rss
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return total
+
+
+def _poll_peak_rss(pid: int, peak: list[int], stop: threading.Event) -> None:
+    while not stop.is_set():
+        peak[0] = max(peak[0], _tree_rss_bytes(pid))
+        stop.wait(_RSS_POLL_INTERVAL_S)
 
 
 def _run_subprocess(method_name: str, module: str, dataset: str, size: Size,
                      input_path: Path) -> dict:
-    """Run module under /usr/bin/time in a fresh process; return timing/memory record."""
-    cmd = ["/usr/bin/time", _TIME_FLAG, "uv", "run", "python", "-m", module, dataset, str(input_path)]
+    """Run module in a fresh process, polling its process tree for peak RSS."""
+    cmd = ["uv", "run", "python", "-m", module, dataset, str(input_path)]
 
     t0     = time.perf_counter()
     status = "ok"
-    peak_b = None
+    peak   = [0]
+    stop   = threading.Event()
+    proc   = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    poller = threading.Thread(target=_poll_peak_rss, args=(proc.pid, peak, stop), daemon=True)
+    poller.start()
     try:
-        result  = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+        stdout, stderr = proc.communicate(timeout=TIMEOUT)
         elapsed = time.perf_counter() - t0
-        peak_b  = _parse_peak_rss_bytes(result.stderr)
-        if result.returncode != 0:
-            status = f"error: rc={result.returncode}"
-            if result.stderr:
-                print(f"    [red]{result.stderr.strip()[:400]}[/]")
+        if proc.returncode != 0:
+            status = f"error: rc={proc.returncode}"
+            if stderr:
+                print(f"    [red]{stderr.strip()[:400]}[/]")
     except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
         elapsed = TIMEOUT
         status  = "timeout"
+    finally:
+        stop.set()
+        poller.join()
 
     return {
         "method":      method_name,
         "size":        size,
         "runtime_s":   round(elapsed, 3),
-        "peak_mem_mb": round(peak_b / 1024 ** 2, 2) if peak_b is not None else None,
+        "peak_mem_mb": round(peak[0] / 1024 ** 2, 2) if peak[0] else None,
         "status":      status,
     }
 
