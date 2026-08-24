@@ -30,7 +30,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")"
+module load mmseqs2/17-b804f
 
 export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
