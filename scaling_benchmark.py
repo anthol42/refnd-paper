@@ -126,10 +126,11 @@ def _tree_rss_bytes(pid: int) -> int:
     """Sum RSS across a process and all its live descendants (e.g. uv's child python)."""
     try:
         proc = psutil.Process(pid)
-    except psutil.NoSuchProcess:
+        procs = [proc, *proc.children(recursive=True)]
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         return 0
     total = 0
-    for p in [proc, *proc.children(recursive=True)]:
+    for p in procs:
         try:
             total += p.memory_info().rss
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -161,7 +162,7 @@ def _run_subprocess(method_name: str, module: str, dataset: str, size: Size,
         if proc.returncode != 0:
             status = f"error: rc={proc.returncode}"
             if stderr:
-                print(f"    [red]{stderr.strip()[:400]}[/]")
+                print(f"    [red]{stderr.strip()[-4000:]}[/]")
     except subprocess.TimeoutExpired:
         proc.kill()
         proc.communicate()
