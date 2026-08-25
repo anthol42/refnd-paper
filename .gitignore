@@ -225,3 +225,6 @@ hestia_tmp_*
 threshold/*.png
 threshold/cache/
 threshold/__pycache__/
+
+.jupyter_ystore.db
+.jupyter/

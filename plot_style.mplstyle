@@ -1,0 +1,67 @@
+# ---- Fonts -------------------------------------------------------------
+# No LaTeX install required: pairs a plain serif body font with matplotlib's
+# built-in "cm" (Computer Modern) math font, so equations match the paper
+# body text without the fragility/slowness of text.usetex.
+font.family        : serif
+mathtext.fontset   : cm
+font.size          : 9
+
+axes.titlesize     : 10
+axes.labelsize     : 9
+xtick.labelsize    : 8
+ytick.labelsize    : 8
+legend.fontsize    : 8
+figure.titlesize   : 11
+
+# ---- Colors --------------------------------------------------------------
+# Okabe–Ito palette: colorblind-safe and still distinguishable in grayscale.
+axes.prop_cycle : cycler('color', ['E69F00', '56B4E9', '009E73', 'F0E442', '0072B2', 'D55E00', 'CC79A7', '000000'])
+
+# ---- Axes / spines --------------------------------------------------------
+axes.spines.top     : False
+axes.spines.right   : False
+axes.linewidth      : 0.8
+axes.labelpad       : 3.0
+axes.axisbelow      : True
+
+axes.grid           : True
+grid.linewidth      : 0.5
+grid.alpha          : 0.35
+grid.linestyle      : --
+
+# ---- Lines / markers -------------------------------------------------------
+lines.linewidth     : 1.6
+lines.markersize    : 4.5
+lines.markeredgewidth : 0.0
+patch.linewidth     : 0.8
+errorbar.capsize    : 2.5
+
+# ---- Ticks -----------------------------------------------------------------
+xtick.direction     : out
+ytick.direction     : out
+xtick.major.size    : 3.0
+ytick.major.size    : 3.0
+xtick.major.width   : 0.8
+ytick.major.width   : 0.8
+xtick.minor.visible : False
+ytick.minor.visible : False
+
+# ---- Legend -----------------------------------------------------------------
+legend.frameon      : False
+legend.handlelength : 1.6
+legend.handletextpad: 0.5
+legend.labelspacing : 0.3
+legend.borderaxespad: 0.3
+
+# ---- Layout -----------------------------------------------------------------
+figure.constrained_layout.use : True
+figure.dpi          : 300
+
+# ---- Saving: the two settings that matter most for camera-ready PDFs -------
+savefig.dpi         : 300
+savefig.bbox        : tight
+savefig.pad_inches  : 0.02
+# Embed real (Type 42 / TrueType) fonts instead of Type 3 bitmap fonts.
+# Some venues' PDF checkers flag Type 3 fonts; this avoids that entirely.
+pdf.fonttype        : 42
+ps.fonttype         : 42
