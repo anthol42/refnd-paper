@@ -110,9 +110,9 @@ def main() -> None:
                              "(offsets.txt and patterns.bin are expected as siblings in the same directory).")
     parser.add_argument("--uniref50-fasta", type=Path, required=True,
                         help="Raw uniref50.fasta.gz -- source of the null model's random sequence pool.")
-    parser.add_argument("--thresh-lo", type=float, default=0.3)
+    parser.add_argument("--thresh-lo", type=float, default=0.0)
     parser.add_argument("--thresh-hi", type=float, default=0.6)
-    parser.add_argument("--n-sweep", type=int, default=10)
+    parser.add_argument("--n-sweep", type=int, default=13)
     parser.add_argument("--n-null-pool", type=int, default=20_000)
     parser.add_argument("--n-null-pairs", type=int, default=1_000_000)
     args = parser.parse_args()

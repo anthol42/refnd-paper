@@ -384,6 +384,110 @@ def _load_belka() -> tuple[np.ndarray, np.ndarray, list[str]]:
     return fps, labels, smiles
 
 
+def mnist_download(cache: "CacheStore | None" = None) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """MNIST train/test images as flattened float32 vectors in [0, 1], shape
+    (N, 784) -- ready for the Cosine kernel. Downloaded via torchvision;
+    additionally cached as plain arrays through `cache` so a cache hit needs
+    neither torchvision nor a re-parse of the raw files.
+
+    Returns (train_vectors, train_labels, test_vectors, test_labels).
+    """
+    if cache is not None:
+        cached_train = cache.get_dataset("mnist_train")
+        cached_test = cache.get_dataset("mnist_test")
+        if cached_train is not None and cached_test is not None:
+            return cached_train[0], cached_train[1], cached_test[0], cached_test[1]
+
+    from torchvision.datasets import MNIST
+
+    root = str((cache.root if cache is not None else Path(".cache")) / "mnist_raw")
+    print("Downloading MNIST via torchvision...")
+    train_ds = MNIST(root=root, train=True, download=True)
+    test_ds = MNIST(root=root, train=False, download=True)
+
+    train_vectors = train_ds.data.numpy().reshape(len(train_ds), -1).astype(np.float32) / 255.0
+    train_labels = train_ds.targets.numpy().astype(np.int64)
+    test_vectors = test_ds.data.numpy().reshape(len(test_ds), -1).astype(np.float32) / 255.0
+    test_labels = test_ds.targets.numpy().astype(np.int64)
+
+    if cache is not None:
+        cache.store_dataset("mnist_train", train_vectors, train_labels)
+        cache.store_dataset("mnist_test", test_vectors, test_labels)
+    return train_vectors, train_labels, test_vectors, test_labels
+
+
+def tiny_imagenet_download() -> Path:
+    """Download (or reuse cached) the akash2sharma/tiny-imagenet Kaggle
+    dataset (kaggle.com/datasets/akash2sharma/tiny-imagenet) -- a mirror of
+    Stanford's tiny-imagenet-200 (64x64 JPEGs, 200 classes). Used only as a
+    real-image null-model population for thresholdv2/mnist.py, downsized +
+    grayscaled to look structurally like MNIST.
+    """
+    import kagglehub
+    from dotenv import load_dotenv
+    from kagglehub.config import get_kaggle_credentials
+
+    load_dotenv()
+    if get_kaggle_credentials() is None:
+        raise RuntimeError(
+            "No Kaggle credentials found. Set KAGGLE_API_TOKEN, or KAGGLE_USERNAME "
+            "and KAGGLE_KEY, in a .env file "
+            "(see https://www.kaggle.com/settings -> API -> Create New Token)."
+        )
+
+    print("Downloading tiny-imagenet (akash2sharma/tiny-imagenet) via kagglehub...")
+    return Path(kagglehub.dataset_download("akash2sharma/tiny-imagenet"))
+
+
+def tiny_imagenet_grayscale_vectors(
+    cache: "CacheStore | None" = None, n: int = 100_000, size: int = 28, seed: int = 42,
+) -> np.ndarray:
+    """Random sample of `n` tiny-imagenet TRAIN images (the only split with
+    per-image class labels, needed so callers can build cross-class null
+    pairs), grayscaled and resized to (size, size) -- 28x28 by default, to
+    match MNIST -- flattened to float32 vectors in [0, 1]. Cached as a plain
+    (vectors, labels) pair, keyed by (size, n, seed).
+
+    Returns (vectors, labels): labels are integer-encoded wnid class ids
+    (folder names under .../tiny-imagenet-200/train/), same length as
+    vectors.
+    """
+    cache_name = f"tiny_imagenet_gray{size}_n{n}_seed{seed}"
+    if cache is not None:
+        cached = cache.get_dataset(cache_name)
+        if cached is not None:
+            return cached[0], cached[1]
+
+    from PIL import Image
+
+    root = tiny_imagenet_download()
+    train_dir = root / "tiny-imagenet-200" / "train"
+    if not train_dir.exists():
+        # some kagglehub layouts nest an extra tiny-imagenet-200/ level
+        candidates = list(root.rglob("train"))
+        train_dir = next((d for d in candidates if (d.parent / "val").exists()), candidates[0])
+    paths = sorted(train_dir.glob("*/images/*.JPEG"))
+    if not paths:
+        raise RuntimeError(f"No labeled train images found under {train_dir}")
+    wnids = [p.parent.parent.name for p in paths]
+    class_to_id = {w: i for i, w in enumerate(sorted(set(wnids)))}
+    all_labels = np.array([class_to_id[w] for w in wnids], dtype=np.int64)
+    print(f"  Found {len(paths):,} labeled tiny-imagenet train images ({len(class_to_id)} classes); sampling {n:,}...")
+
+    rng = np.random.default_rng(seed)
+    idx = rng.choice(len(paths), size=min(n, len(paths)), replace=False)
+
+    vectors = np.empty((len(idx), size * size), dtype=np.float32)
+    for i, j in enumerate(idx):
+        img = Image.open(paths[j]).convert("L").resize((size, size))
+        vectors[i] = np.asarray(img, dtype=np.float32).reshape(-1) / 255.0
+    labels = all_labels[idx]
+
+    if cache is not None:
+        cache.store_dataset(cache_name, vectors, labels)
+    return vectors, labels
+
+
 def _load_prom_core_all() -> tuple[list[str], np.ndarray]:
     import io
     import requests

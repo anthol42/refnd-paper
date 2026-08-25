@@ -37,27 +37,20 @@ def run_threshold(
     comm_type[pure_prod_mask] = 1
 
     c_src, c_dst = communities[src], communities[dst]
-    t_src, t_dst = comm_type[c_src], comm_type[c_dst]
 
-    # Single-linkage distance from each pure-train community to the nearest
-    # OTHER pure-train community, and to the nearest pure-prod community.
-    min_train_train = np.full(n_comm, np.inf, dtype=np.float32)
-    tt_edge_mask = (t_src == 0) & (t_dst == 0) & (c_src != c_dst)
-    if tt_edge_mask.any():
-        np.minimum.at(min_train_train, c_src[tt_edge_mask], dist[tt_edge_mask])
-        np.minimum.at(min_train_train, c_dst[tt_edge_mask], dist[tt_edge_mask])
-
-    min_train_prod = np.full(n_comm, np.inf, dtype=np.float32)
-    tp_mask_a = (t_src == 0) & (t_dst == 1)
-    tp_mask_b = (t_src == 1) & (t_dst == 0)
-    if tp_mask_a.any():
-        np.minimum.at(min_train_prod, c_src[tp_mask_a], dist[tp_mask_a])
-    if tp_mask_b.any():
-        np.minimum.at(min_train_prod, c_dst[tp_mask_b], dist[tp_mask_b])
+    is_train_node = source == 0
+    min_dist_to_train = np.full(n_comm, np.inf, dtype=np.float32)
+    mask_a = is_train_node[dst] & (c_src != c_dst)  # dst is train -> candidate for c_src's min
+    mask_b = is_train_node[src] & (c_src != c_dst)  # src is train -> candidate for c_dst's min
+    if mask_a.any():
+        np.minimum.at(min_dist_to_train, c_src[mask_a], dist[mask_a])
+    if mask_b.any():
+        np.minimum.at(min_dist_to_train, c_dst[mask_b], dist[mask_b])
 
     pure_train_ids = np.nonzero(pure_train_mask)[0]
-    tt_vals = min_train_train[pure_train_ids]
-    tp_vals = min_train_prod[pure_train_ids]
+    pure_prod_ids = np.nonzero(pure_prod_mask)[0]
+    tt_vals = min_dist_to_train[pure_train_ids]  # pure-train communities -> nearest OTHER train node
+    tp_vals = min_dist_to_train[pure_prod_ids]   # pure-prod communities -> nearest train node
     tt_finite = tt_vals[np.isfinite(tt_vals)]
     tp_finite = tp_vals[np.isfinite(tp_vals)]
 
