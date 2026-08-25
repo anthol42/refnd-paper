@@ -50,7 +50,7 @@ DATASETS: dict[str, DatasetConfig] = {
         modality=KernelVariant.TanimotoBit,
         metric="mcc-multilabel",
         encoder="seyonec/ChemBERTa-zinc-base-v1",
-        proximity_threshold=0.05,
+        proximity_threshold=0.1,
         kernel_params={},
     ),
     "peptide_atlas": DatasetConfig(

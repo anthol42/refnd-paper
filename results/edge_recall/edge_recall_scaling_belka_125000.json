@@ -1,0 +1,16 @@
+[
+  {
+    "size": 125000,
+    "ef_construction": 32,
+    "pct_edges_recovered": 0.9636363636363636,
+    "hnsw_build_time_s": 8.283,
+    "scaled": false
+  },
+  {
+    "size": 125000,
+    "ef_construction": 37,
+    "pct_edges_recovered": 0.9818181818181818,
+    "hnsw_build_time_s": 8.277,
+    "scaled": true
+  }
+]
