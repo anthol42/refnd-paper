@@ -17,9 +17,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import faulthandler
 import itertools
 import json
+import os
 import pickle
+import sys
+import time
 from pathlib import Path
 from typing import Callable, Iterable
 
@@ -38,6 +42,31 @@ from src.fingerprints import (
 from src.metrics import null_model_cdf, null_model_scores
 
 from thresholdv2.fit import sweep_thresholds
+
+# DEBUG: last SMILES handed to RDKit, module-level so it survives a segfault
+# inside generate_random_molecule_fps -- combined with the periodic
+# _debug_stamp() calls below (every 10k molecules), this narrows a crash to
+# within 10k molecules of a known-good point even though a segfault gives us
+# no exception/traceback of its own.
+_LAST_RDKIT_SMILES: str | None = None
+_LAST_RDKIT_STAGE: str = ""
+
+# DEBUG: dump a Python-level (all-threads) traceback to stderr on a fatal
+# signal (SIGSEGV/SIGFPE/SIGABRT/SIGBUS/SIGILL) before the process dies.
+# Won't show C/Rust frames, but pinpoints which Python line each thread was
+# executing -- e.g. distinguishes "stuck in the RDKit call on the main
+# thread" from "died inside a rayon worker thread in zip_kernel".
+faulthandler.enable(all_threads=True)
+
+
+def _debug_stamp(msg: str) -> None:
+    """Flushed, timestamped progress marker -- so the sbatch log shows
+    exactly which stage was reached even if the process is killed before
+    Python's normal (buffered) stdout would otherwise flush."""
+    ts = time.strftime("%H:%M:%S")
+    print(f"  [dim][DEBUG {ts}] {msg}[/]")
+    sys.stdout.flush()
+
 
 OUT_DIR = Path(__file__).parent.parent / "results" / "thresholds"
 GRAPH_CACHE_KEY = "threshold_sweep_belka"
@@ -246,7 +275,9 @@ def build_hnsw(
         tmp_index_path.rename(index_path)
         print(f"  Saved built index: {index_path.name}")
 
+    _debug_stamp("build_hnsw: about to call hnsw.get_layer(0, weights=True)")
     es = hnsw.get_layer(0, weights=True, progress=True)
+    _debug_stamp(f"build_hnsw: get_layer(0) returned, n_edges={len(es):,}")
     print(f"  layer0: n_edges={len(es):,}")
     cache.store_edges(graph_cache_key, es)
     return es
@@ -262,20 +293,36 @@ def generate_random_molecule_fps(n: int, seed: int) -> list:
     from rdkit.Chem import rdFingerprintGenerator
     import selfies as sf
 
+    global _LAST_RDKIT_SMILES, _LAST_RDKIT_STAGE
+
     rng = np.random.default_rng(seed)
     morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
     fps = []
     n_invalid = 0
+    _debug_stamp(f"generate_random_molecule_fps: starting, n={n:,} seed={seed}")
     while len(fps) < n:
         n_tok = max(10, int(round(rng.normal(NULL_MEAN_SIZE, NULL_STD_SIZE))))
         toks = rng.choice(NULL_ATOM_ALPHABET, size=n_tok)
+
+        _LAST_RDKIT_STAGE = "selfies.decoder"
         smi = sf.decoder("".join(toks))
+        _LAST_RDKIT_SMILES = smi
+
+        _LAST_RDKIT_STAGE = "Chem.MolFromSmiles"
         mol = Chem.MolFromSmiles(smi)
         if mol is None:
             n_invalid += 1
             continue
+
+        _LAST_RDKIT_STAGE = "morgan_gen.GetFingerprint"
         fp = morgan_gen.GetFingerprint(mol)
         fps.append(BitFingerprint.from_np(np.array(fp, dtype=bool)))
+
+        if len(fps) % 10_000 == 0:
+            _debug_stamp(
+                f"generate_random_molecule_fps: {len(fps):,}/{n:,} "
+                f"(invalid so far={n_invalid:,}, last smiles={smi!r})"
+            )
     print(f"  generated {len(fps):,} random-atom molecules ({n_invalid:,} invalid, discarded)")
     return fps
 
@@ -292,7 +339,12 @@ def find_gamma_function(
         null_scores = np.load(null_path)
     else:
         random_fps = generate_random_molecule_fps(n_molecules, seed)
+        _debug_stamp(
+            f"find_gamma_function: about to call null_model_scores/zip_kernel "
+            f"(n_pairs={n_pairs:,}, RAYON_NUM_THREADS={os.environ.get('RAYON_NUM_THREADS')})"
+        )
         null_scores = null_model_scores(random_fps, cfg, n_samples=n_pairs, seed=seed, shuffle=False)
+        _debug_stamp("find_gamma_function: null_model_scores/zip_kernel returned")
         np.save(null_path, null_scores)
     return null_model_cdf(null_scores)
 
@@ -321,21 +373,26 @@ def main() -> None:
     prod_fp_path, n_prod = get_or_build_fingerprints("belka_test_ood_stripped", build_prod_smiles, cache)
     print(f"  train={n_train:,}  prod(non-triazine test)={n_prod:,}")
 
+    _debug_stamp("main: about to call build_hnsw")
     hnsw_graph = build_hnsw(
         train_fp_path, n_train, prod_fp_path, n_prod, cache,
         graph_cache_key=f"{GRAPH_CACHE_KEY}{suffix}", ef_construction=args.ef_construction,
     )
+    _debug_stamp("main: build_hnsw returned")
     train_nodes = np.arange(n_train, dtype=np.int32)
     prod_nodes = np.arange(n_train, n_train + n_prod, dtype=np.int32)
 
     print("  Computing gamma(tau) from a random-molecule null...")
     gamma_cdf = find_gamma_function(cache, n_molecules=args.n_null_molecules, n_pairs=args.n_null_pairs)
+    _debug_stamp("main: find_gamma_function returned")
 
+    _debug_stamp("main: about to call sweep_thresholds")
     thresholds, results = sweep_thresholds(
         hnsw_graph, train_nodes, prod_nodes, gamma_cdf,
         args.thresh_lo, args.thresh_hi, args.n_sweep,
         inweight_type=INWeightType.SimilarityComplement,
     )
+    _debug_stamp("main: sweep_thresholds returned")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUT_DIR / f"molecules{suffix}.json"
