@@ -4,8 +4,7 @@ source on first use, matching the ``_load_peptide_atlas``-style cache-then-fetch
 pattern in ``src/datasets.py``).
 
 - **ProteinGym**: one wildtype sequence per DMS assay -- NOT the ~1.5M mutant
-  rows (same convention as ``threshold/uniref50_benchmarks.py``'s docstring:
-  "unique DMS wild-type sequences ... NOT the ... single/multi-mutant variant
+  rows ("unique DMS wild-type sequences ... NOT the ... single/multi-mutant variant
   rows, which would violate the i.i.d. assumption"). Fetched from the official
   HuggingFace dataset ``OATML-Markslab/ProteinGym_v1``
   (config=``DMS_substitutions``), deduplicated by ``DMS_id``.

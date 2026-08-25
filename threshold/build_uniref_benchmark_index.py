@@ -25,8 +25,7 @@ Pipeline:
        distances) from the extended graph, saved to `--edgestore-out`.
 
 Sequences longer than `--length-cap` or containing characters outside
-ProtSpaM's alphabet are dropped during encoding (same convention as
-threshold/protspam_param_search.py -- verified to drop <2.5% everywhere).
+ProtSpaM's alphabet are dropped during encoding (verified to drop <2.5% everywhere).
 
 Usage:
     uv run python -m threshold.build_uniref_benchmark_index \\

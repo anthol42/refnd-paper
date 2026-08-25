@@ -41,7 +41,7 @@ from src.fingerprints import (
 )
 from src.metrics import null_model_cdf, null_model_scores
 
-from thresholdv2.fit import sweep_thresholds
+from threshold.fit import sweep_thresholds
 
 # DEBUG: last SMILES handed to RDKit, module-level so it survives a segfault
 # inside generate_random_molecule_fps -- combined with the periodic
@@ -75,7 +75,7 @@ SEED = 42  # only used to seed the (optional) train fraction sub-sample
 DNA_TAG = "[Dy]"
 TRIAZINE_SMARTS = "c1ncncn1"  # bare 1,3,5-triazine aromatic ring, any substitution
 
-# Random-molecule null model (see threshold/belka.py's generate_random_atom_fps,
+# Random-molecule null model (see belka.py's generate_random_atom_fps,
 # the earlier version of this same strategy): linear SELFIES chains of bare,
 # valence>=2 atoms, chain length ~Normal(mean, std) tokens. Zero relation to
 # BELKA's real building blocks -- matched only on coarse size.

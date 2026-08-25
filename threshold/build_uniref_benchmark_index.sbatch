@@ -13,7 +13,7 @@ OUTPATH=/home/lavertu/scratch/refnd_output/uniref
 
 # Builds the ProtSpaM HNSW index over UniRef50, extends it with the
 # ProteinGym/PEER/CASP15 benchmarks, and exports the layer-0 weighted edge
-# graph -- see threshold/build_uniref_benchmark_index.py's module docstring
+# graph -- see build_uniref_benchmark_index.py's module docstring
 # for the full pipeline description.
 #
 # 128 CPUs / 120GB is a safety margin over the estimated ~90GB (n=1 pattern,
@@ -26,7 +26,7 @@ OUTPATH=/home/lavertu/scratch/refnd_output/uniref
 # script again -- it picks up at the first incomplete stage instead of
 # recomputing everything from scratch.
 #
-# Usage: sbatch threshold/build_uniref_benchmark_index.sbatch
+# Usage: sbatch build_uniref_benchmark_index.sbatch
 
 set -euo pipefail
 
