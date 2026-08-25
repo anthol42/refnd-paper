@@ -1,6 +1,6 @@
 """Threshold sweep for UniRef50 (train) vs. the union of protein benchmarks
 (ProteinGym + PEER + CASP15, production) that
-threshold/build_uniref_benchmark_index.py extended the ProtSpaM HNSW index
+build_uniref_benchmark_index.py extended the ProtSpaM HNSW index
 with.
 
 Takes that script's pre-computed layer-0 EdgeStore as input; offsets.txt and
@@ -33,7 +33,7 @@ from src.metrics import _shuffle_sample, null_model_cdf
 
 from threshold.build_uniref_benchmark_index import stream_uniref50_fasta
 
-from thresholdv2.fit import sweep_thresholds
+from threshold.fit import sweep_thresholds
 
 OUT_DIR = Path(__file__).parent.parent / "results" / "thresholds"
 
@@ -106,7 +106,7 @@ def find_gamma_function(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--edgestore-path", type=Path, required=True,
-                        help="Pre-computed layer-0 EdgeStore from threshold.build_uniref_benchmark_index "
+                        help="Pre-computed layer-0 EdgeStore from build_uniref_benchmark_index "
                              "(offsets.txt and patterns.bin are expected as siblings in the same directory).")
     parser.add_argument("--uniref50-fasta", type=Path, required=True,
                         help="Raw uniref50.fasta.gz -- source of the null model's random sequence pool.")

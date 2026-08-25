@@ -30,7 +30,7 @@ from src.cache import CacheStore
 from src.datasets import DatasetConfig, mnist_download, tiny_imagenet_grayscale_vectors
 from src.metrics import null_model_cdf
 
-from thresholdv2.fit import sweep_thresholds
+from threshold.fit import sweep_thresholds
 
 OUT_DIR = Path(__file__).parent.parent / "results" / "thresholds"
 GRAPH_CACHE_KEY = "threshold_sweep_mnist"
