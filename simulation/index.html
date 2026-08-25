@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Threshold sweep simulation</title>
+<script src="data.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #171a23; --border: #2a2e3a; --text: #e6e8ee; --muted: #9aa1b1;
+    --train: #4c8bf5; --prod: #f5794c; --accent: #35d07f; --warn: #f5c451;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+  h1 { font-size: 15px; font-weight: 600; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  h1 span { color: var(--text); }
+
+  #stats { display: flex; flex-wrap: wrap; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+  .stat { background: var(--panel); padding: 8px 14px; min-width: 108px; flex: 1; }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 2px; }
+  .stat .value { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .value.small { font-size: 13px; }
+
+  #panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+  .panel { background: var(--panel); padding: 10px; }
+  .panel h2 { font-size: 12px; font-weight: 600; color: var(--muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  canvas { display: block; width: 100%; height: 480px; background: #10131b; border-radius: 4px; }
+
+  #legend { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  #legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  #controls { padding: 14px 16px 20px; border-top: 1px solid var(--border); }
+  #tauRow { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  #tauRow input[type=range] { flex: 1; accent-color: var(--accent); }
+  #tauLabel { font-variant-numeric: tabular-nums; font-size: 14px; min-width: 150px; }
+  #tauLabel b { color: var(--accent); }
+
+  #markers { display: flex; gap: 8px; flex-wrap: wrap; }
+  #markers button {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;
+  }
+  #markers button:hover { border-color: var(--accent); color: var(--accent); }
+
+  #meta { padding: 8px 16px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<h1>Threshold sweep: single-linkage distance matching vs. recovered partition — <span id="metaTitle"></span></h1>
+
+<div id="stats"></div>
+
+<div id="panels">
+  <div class="panel">
+    <h2>Single-linkage distance distribution (nearest-train from each community)</h2>
+    <canvas id="ecdfCanvas" width="900" height="480"></canvas>
+    <div id="legend">
+      <span><span class="swatch" style="background:var(--train)"></span>train &rarr; nearest OTHER train community (solid = inferred, dotted = TRUE blobs)</span>
+      <span><span class="swatch" style="background:var(--prod)"></span>prod &rarr; nearest train community (solid = inferred, dotted = TRUE blobs)</span>
+      <span><span class="swatch" style="background:var(--warn)"></span>max gap = KS statistic (inferred curves only)</span>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Recovered communities (colored by community id)</h2>
+    <canvas id="scatterCanvas" width="900" height="480"></canvas>
+    <div id="legend">
+      <span>disk size for reference only — color = community, not true blob</span>
+    </div>
+  </div>
+</div>
+
+<div id="controls">
+  <div id="tauRow">
+    <span style="color:var(--muted); font-size:12px; min-width:70px;">blob sigma_std</span>
+    <input type="range" id="sigmaStdSlider" min="0" max="1" step="1" value="0">
+    <span id="sigmaStdLabel" style="min-width:220px;">sigma_std = <b>0</b></span>
+  </div>
+  <div id="tauRow">
+    <span style="color:var(--muted); font-size:12px; min-width:70px;">tau</span>
+    <input type="range" id="tauSlider" min="0" max="1" step="1" value="0">
+    <span id="tauLabel">tau = <b>0</b></span>
+  </div>
+  <div id="markers"></div>
+</div>
+
+<div id="meta"></div>
+
+<script>
+const VARIANTS = VIZ_DATA.variants;
+let D = VARIANTS[0];       // current sigma_std variant
+let N = D.thresholds.length;
+let xDomainMax = 0.05;     // recomputed per variant, see setVariant()
+const palette = [
+  "#4c8bf5","#f5794c","#35d07f","#f5c451","#a05cf5","#f5556c","#4cd0f5","#c9f54c",
+  "#f54ca7","#7c8cf5","#f5a54c","#5cf5b5","#f5f04c","#b04cf5","#4cf5e0","#f57c9a",
+  "#8cf54c","#4c95f5","#f59a4c","#c04cf5"
+];
+
+function fmt(x, d=4) { return (x === null || x === undefined) ? "—" : x.toFixed(d); }
+
+function computeXDomainMax(variant) {
+  let allVals = [];
+  for (const s of variant.frames_stats) allVals.push(...s.train_train_dist, ...s.train_prod_dist);
+  allVals.push(...variant.oracle_train_train_dist, ...variant.oracle_train_prod_dist);
+  allVals.sort((a,b)=>a-b);
+  return allVals.length ? allVals[Math.min(allVals.length-1, Math.floor(allVals.length*0.99))] : 0.05;
+}
+
+// ---- stats panel ----
+const statsDiv = document.getElementById("stats");
+const statFields = [
+  ["tau", s => fmt(s.tau, 5), "value"],
+  ["n_comm found", s => s.n_comm.toLocaleString(), "value"],
+  ["ARI", s => fmt(s.ari), "value"],
+  ["KS statistic", s => fmt(s.ks_stat), "value"],
+  ["KS p-value", s => fmt(s.ks_pvalue), "value"],
+  ["pure train / prod / hybrid", s => `${s.n_pure_train} / ${s.n_pure_prod} / ${s.n_hybrid}`, "value small"],
+];
+statsDiv.innerHTML = statFields.map(([label, , cls]) => `
+  <div class="stat">
+    <div class="label">${label}</div>
+    <div class="${cls}" data-field="${label}"></div>
+  </div>`).join("");
+const statValueEls = [...statsDiv.querySelectorAll("[data-field]")];
+
+function updateStats(s) {
+  statFields.forEach(([label, fn], i) => { statValueEls[i].textContent = fn(s); });
+}
+
+// ---- ECDF panel ----
+const ecdfCanvas = document.getElementById("ecdfCanvas");
+const ectx = ecdfCanvas.getContext("2d");
+
+function ecdfPoints(sortedVals, xMax, w, h, padL, padT, plotW, plotH) {
+  const n = sortedVals.length;
+  const pts = [[padL, padT + plotH]];
+  for (let i = 0; i < n; i++) {
+    const x = padL + Math.min(sortedVals[i], xMax) / xMax * plotW;
+    const y0 = padT + plotH * (1 - i / n);
+    const y1 = padT + plotH * (1 - (i + 1) / n);
+    pts.push([x, y0]);
+    pts.push([x, y1]);
+  }
+  pts.push([padL + plotW, padT]);
+  return pts;
+}
+
+function drawECDF(stats) {
+  const w = ecdfCanvas.width, h = ecdfCanvas.height;
+  ectx.clearRect(0, 0, w, h);
+  const padL = 46, padR = 16, padT = 10, padB = 26;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+
+  // axes
+  ectx.strokeStyle = "#2a2e3a"; ectx.lineWidth = 1;
+  ectx.beginPath();
+  ectx.moveTo(padL, padT); ectx.lineTo(padL, padT + plotH); ectx.lineTo(padL + plotW, padT + plotH);
+  ectx.stroke();
+  ectx.fillStyle = "#9aa1b1"; ectx.font = "10px sans-serif"; ectx.textAlign = "center";
+  for (let f = 0; f <= 1; f += 0.25) {
+    const x = padL + f * plotW;
+    ectx.fillText(xDomainMax === 0 ? "0" : (f*xDomainMax).toFixed(4), x, padT + plotH + 14);
+  }
+  ectx.textAlign = "right";
+  for (let f = 0; f <= 1; f += 0.5) {
+    const y = padT + plotH * (1 - f);
+    ectx.fillText(f.toFixed(1), padL - 6, y + 3);
+  }
+
+  const tt = [...stats.train_train_dist].sort((a,b)=>a-b);
+  const tp = [...stats.train_prod_dist].sort((a,b)=>a-b);
+  const oracleTt = [...D.oracle_train_train_dist].sort((a,b)=>a-b);
+  const oracleTp = [...D.oracle_train_prod_dist].sort((a,b)=>a-b);
+
+  // oracle (TRUE blobs) reference curves -- dotted, constant across tau
+  function strokeDashed(sortedVals, color) {
+    if (!sortedVals.length) return;
+    ectx.strokeStyle = color; ectx.lineWidth = 1.5; ectx.setLineDash([5,4]); ectx.beginPath();
+    const pts = ecdfPoints(sortedVals, xDomainMax, w, h, padL, padT, plotW, plotH);
+    pts.forEach(([x,y], i) => i===0 ? ectx.moveTo(x,y) : ectx.lineTo(x,y));
+    ectx.stroke();
+    ectx.setLineDash([]);
+  }
+  strokeDashed(oracleTt, "#4c8bf5");
+  strokeDashed(oracleTp, "#f5794c");
+
+  if (tt.length) {
+    ectx.strokeStyle = "#4c8bf5"; ectx.lineWidth = 2; ectx.beginPath();
+    const pts = ecdfPoints(tt, xDomainMax, w, h, padL, padT, plotW, plotH);
+    pts.forEach(([x,y], i) => i===0 ? ectx.moveTo(x,y) : ectx.lineTo(x,y));
+    ectx.stroke();
+  }
+  if (tp.length) {
+    ectx.strokeStyle = "#f5794c"; ectx.lineWidth = 2; ectx.beginPath();
+    const pts = ecdfPoints(tp, xDomainMax, w, h, padL, padT, plotW, plotH);
+    pts.forEach(([x,y], i) => i===0 ? ectx.moveTo(x,y) : ectx.lineTo(x,y));
+    ectx.stroke();
+  }
+
+  // max-gap (KS) marker: find x maximizing |Ftt(x)-Ftp(x)| by scanning candidate x's (union of both sample sets)
+  if (tt.length > 1 && tp.length > 1 && stats.ks_stat !== null) {
+    const xs = Array.from(new Set([...tt, ...tp])).sort((a,b)=>a-b);
+    let bestGap = -1, bestX = 0, bestFtt = 0, bestFtp = 0;
+    for (const x of xs) {
+      const Ftt = tt.filter(v => v <= x).length / tt.length;
+      const Ftp = tp.filter(v => v <= x).length / tp.length;
+      const gap = Math.abs(Ftt - Ftp);
+      if (gap > bestGap) { bestGap = gap; bestX = x; bestFtt = Ftt; bestFtp = Ftp; }
+    }
+    const px = padL + Math.min(bestX, xDomainMax) / xDomainMax * plotW;
+    const py0 = padT + plotH * (1 - bestFtt);
+    const py1 = padT + plotH * (1 - bestFtp);
+    ectx.strokeStyle = "#f5c451"; ectx.lineWidth = 2; ectx.setLineDash([4,3]);
+    ectx.beginPath(); ectx.moveTo(px, py0); ectx.lineTo(px, py1); ectx.stroke();
+    ectx.setLineDash([]);
+  }
+
+  if (!tt.length || !tp.length) {
+    ectx.fillStyle = "#9aa1b1"; ectx.textAlign = "center"; ectx.font = "13px sans-serif";
+    ectx.fillText("not enough pure train/prod communities to compare at this tau", padL + plotW/2, padT + plotH/2);
+  }
+}
+
+// ---- scatter panel ----
+const scatterCanvas = document.getElementById("scatterCanvas");
+const sctx = scatterCanvas.getContext("2d");
+
+function drawScatter(frameIdx) {
+  const w = scatterCanvas.width, h = scatterCanvas.height;
+  sctx.clearRect(0, 0, w, h);
+  const pad = 10;
+  const plotW = w - 2*pad, plotH = h - 2*pad;
+  const comms = D.frames_communities[frameIdx];
+  const pts = D.points;
+  sctx.globalAlpha = 0.75;
+  for (let i = 0; i < pts.length; i++) {
+    const [x, y] = pts[i];
+    const px = pad + x * plotW;
+    const py = pad + (1 - y) * plotH;
+    sctx.fillStyle = palette[comms[i] % palette.length];
+    sctx.beginPath();
+    sctx.arc(px, py, 1.6, 0, Math.PI*2);
+    sctx.fill();
+  }
+  sctx.globalAlpha = 1;
+}
+
+// ---- slider wiring ----
+const slider = document.getElementById("tauSlider");
+const tauLabel = document.getElementById("tauLabel");
+const sigmaSlider = document.getElementById("sigmaStdSlider");
+const sigmaLabel = document.getElementById("sigmaStdLabel");
+const markersDiv = document.getElementById("markers");
+
+sigmaSlider.min = 0;
+sigmaSlider.max = VARIANTS.length - 1;
+
+function render(frameIdx) {
+  const stats = D.frames_stats[frameIdx];
+  updateStats(stats);
+  drawECDF(stats);
+  drawScatter(frameIdx);
+  tauLabel.innerHTML = `tau = <b>${stats.tau.toFixed(5)}</b> &nbsp; (frame ${frameIdx+1}/${N})`;
+  slider.value = frameIdx;
+}
+
+function renderMarkers() {
+  const markerDefs = [
+    ["Best ARI", D.markers.best_ari_idx],
+    ["Best KS (min stat)", D.markers.best_ks_idx],
+    ["Best KS (max p-value)", D.markers.best_pvalue_idx],
+  ];
+  markersDiv.innerHTML = markerDefs.map(([label, idx]) =>
+    `<button data-idx="${idx}">${label} &rarr; tau=${D.thresholds[idx].toFixed(5)}</button>`
+  ).join("");
+  markersDiv.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => render(parseInt(btn.dataset.idx, 10)));
+  });
+}
+
+function renderMeta() {
+  document.getElementById("metaTitle").textContent =
+    `${D.meta.n_blobs_placed}/${D.meta.n_gaussians} blobs placed, sigma_multiplier=${D.meta.sigma_multiplier}, sigma_std=${D.sigma_std}`;
+  document.getElementById("meta").textContent =
+    `sigma range: [${D.meta.sigma_min.toFixed(5)}, ${D.meta.sigma_max.toFixed(5)}]. ` +
+    `Rendering ${D.meta.n_points_viz.toLocaleString()} of ${D.meta.n_points_total.toLocaleString()} points (subsampled for browser performance). ` +
+    `Stats (ARI, KS) are computed on the FULL dataset. Generated by simulation/generate_data.py.`;
+}
+
+function setVariant(variantIdx) {
+  D = VARIANTS[variantIdx];
+  N = D.thresholds.length;
+  xDomainMax = computeXDomainMax(D);
+  slider.max = N - 1;
+  sigmaLabel.innerHTML = `sigma_std = <b>${D.sigma_std}</b> &nbsp; (${D.meta.n_blobs_placed}/${D.meta.n_gaussians} blobs placed)`;
+  sigmaSlider.value = variantIdx;
+  renderMarkers();
+  renderMeta();
+  render(D.markers.best_ari_idx);
+}
+
+slider.addEventListener("input", () => render(parseInt(slider.value, 10)));
+sigmaSlider.addEventListener("input", () => setVariant(parseInt(sigmaSlider.value, 10)));
+
+setVariant(VIZ_DATA.default_idx ?? 0);
+</script>
+
+</body>
+</html>
