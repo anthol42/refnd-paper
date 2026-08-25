@@ -109,7 +109,7 @@ def find_gamma_function(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--thresh-lo", type=float, default=0.0)
-    parser.add_argument("--thresh-hi", type=float, default=0.6)
+    parser.add_argument("--thresh-hi", type=float, default=0.25)
     parser.add_argument("--n-sweep", type=int, default=13)
     parser.add_argument("--ef-construction", type=int, default=64)
     parser.add_argument("--n-null-pool", type=int, default=100_000)
