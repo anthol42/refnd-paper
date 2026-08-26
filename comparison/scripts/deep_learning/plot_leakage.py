@@ -5,6 +5,7 @@ identity to any train sample, overlaid across splitting methods.
 A leakage-free split pushes mass to the left (low max identity); a leaky split
 (e.g. random) piles mass near 1.0 (near-duplicates across the train/test boundary).
 """
+import os
 import sys
 from pathlib import Path
 
@@ -16,9 +17,9 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 from common import MOLECULE_DATASETS, DNA_DATASETS  # noqa: E402
 
-PROTEIN_DATASETS = ["dbaasp_amp"]
+PROTEIN_DATASETS = ["dbaasp_amp", "enzyme_topt"]
 
-BASE = Path(__file__).resolve().parent.parent  # comparison/ (was /scratch/jacobc/refnd_exp)
+BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 LEAK = BASE / "results" / "leakage"
 FIGDIR = BASE / "results" / "figures_leakage"
 THRESHOLD = 0.40  # leakage cutoff (Tanimoto for molecules, identity for DNA)
@@ -67,12 +68,13 @@ def plot_dataset(dtype, dataset, xlabel, threshold=THRESHOLD):
 
 def main():
     for ds in MOLECULE_DATASETS:
-        plot_dataset("molecule", ds, "max Tanimoto to nearest train molecule")
+        plot_dataset("molecule", ds, "max Tanimoto to nearest train molecule")  # 40%
     for ds in PROTEIN_DATASETS:
-        # Peptide benchmark threshold is 50% identity (vs 40% for mol/DNA).
-        plot_dataset("protein", ds, "max global identity to nearest train peptide", threshold=0.50)
+        # Protein/peptide now at 40% identity (mid of Hestia's 0.3-0.5 range).
+        plot_dataset("protein", ds, "max global identity to nearest train protein", threshold=0.40)
     for ds in DNA_DATASETS:
-        plot_dataset("dna", ds, "max identity to nearest train sequence")
+        # DNA now at 60% identity (above the 4-letter noise floor).
+        plot_dataset("dna", ds, "max identity to nearest train sequence", threshold=0.60)
     print(f"\nFigures in {FIGDIR}")
 
 

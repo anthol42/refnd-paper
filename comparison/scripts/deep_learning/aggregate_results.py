@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Aggregate per-seed result files into final JSON summaries + Wilcoxon table."""
+import os
 import json
 import sys
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import wilcoxon
 
-BASE = Path(__file__).resolve().parent.parent  # comparison/ (was /scratch/jacobc/refnd_exp)
+BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 RESULTS_DIR = BASE / "results"
 
 PROTEIN_METHODS  = ["refnd", "random", "mmseqs2", "hestia", "datasail"]
@@ -114,7 +115,7 @@ def main():
 
     print("\n" + "="*60)
     print("PROTEIN")
-    wilcoxon_table.update(process_task("protein", ["dbaasp_amp"], PROTEIN_METHODS))
+    wilcoxon_table.update(process_task("protein", ["dbaasp_amp", "enzyme_topt"], PROTEIN_METHODS))
 
     print("\n" + "="*60)
     print("MOLECULE")

@@ -5,6 +5,7 @@ For each dataset, one PNG with two panels (linear + MLP heads). Each panel shows
 per splitting method, grouped test/train bars (mean +/- std over seeds); the visible
 gap between them is the overfitting. A larger gap = the split exposes more overfitting.
 """
+import os
 import json
 import sys
 from pathlib import Path
@@ -15,9 +16,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DATASET_CONFIG, MOLECULE_DATASETS, DNA_DATASETS  # noqa: E402
+from common import DATASET_CONFIG, PROTEIN_DATASETS, MOLECULE_DATASETS, DNA_DATASETS  # noqa: E402
 
-BASE = Path(__file__).resolve().parent.parent  # comparison/ (was /scratch/jacobc/refnd_exp)
+BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 RESULTS = BASE / "results"
 FIGDIR = RESULTS / "figures"
 HEADS = ["linear", "mlp"]
@@ -95,7 +96,7 @@ def plot_dataset(task_type, dataset):
 def main():
     for ds in MOLECULE_DATASETS:
         plot_dataset("molecule", ds)
-    for ds in ["dbaasp_amp"]:
+    for ds in PROTEIN_DATASETS:
         plot_dataset("protein", ds)
     for ds in DNA_DATASETS:
         plot_dataset("dna", ds)
