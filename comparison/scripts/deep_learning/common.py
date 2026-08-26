@@ -16,6 +16,11 @@ from scipy.stats import pearsonr
 
 SEEDS = list(range(1, 11))
 
+PROTEIN_DATASETS = [
+    "dbaasp_amp",    # DBAASP antimicrobial peptides (regression, log10 MIC)
+    "enzyme_topt",   # enzyme optimal catalytic temperature (proteinglm/optimal_temperature)
+]
+
 MOLECULE_DATASETS = [
     "cyp2c19_veith",
     "caco2_wang",
@@ -36,6 +41,7 @@ DNA_DATASETS = [
 
 DATASET_CONFIG = {
     "dbaasp_amp":          {"embed": "protein_esmc.pt",           "metric": "pcc",   "task": "regression"},
+    "enzyme_topt":         {"embed": "protein_enzyme_topt.pt",     "metric": "pcc",   "task": "regression"},
     "cyp2c19_veith":       {"embed": "mol_cyp2c19.pt",            "metric": "auroc", "task": "classification"},
     "caco2_wang":          {"embed": "mol_caco2.pt",               "metric": "pcc",   "task": "regression"},
     "pgp_broccatelli":     {"embed": "mol_pgp.pt",                 "metric": "auroc", "task": "classification"},

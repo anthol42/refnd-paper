@@ -5,6 +5,7 @@ Identity = 1 - kernel_distance from refnd's exact_nearest_neighbors (brute force
 no threshold), so the full 0..1 distribution is captured. Saves one .npy array of
 per-test-sample max identities to results/leakage/{dtype}/{dataset}/{method}_seed{seed}.npy
 """
+import os
 import argparse
 import json
 import sys
@@ -14,7 +15,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-BASE = Path(__file__).resolve().parent.parent  # comparison/ (was /scratch/jacobc/refnd_exp)
+BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 
 
 def build_fingerprints(smiles_list):
