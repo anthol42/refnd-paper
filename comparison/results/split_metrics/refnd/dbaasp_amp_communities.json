@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "dbaasp_amp",
+  "n_nodes": 10664,
+  "n_communities": 845,
+  "largest_community_frac": 0.246,
+  "singleton_communities": 569,
+  "per_seed": {
+    "1": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "2": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "3": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "4": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "5": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "6": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "7": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "8": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "9": {
+      "train_communities": 676,
+      "test_communities": 169
+    },
+    "10": {
+      "train_communities": 676,
+      "test_communities": 169
+    }
+  },
+  "n_components": 495,
+  "largest_component_frac": 0.9292
+}

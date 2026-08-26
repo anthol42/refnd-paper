@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "ames",
+  "n_nodes": 7278,
+  "n_communities": 1038,
+  "largest_community_frac": 0.0848,
+  "singleton_communities": 563,
+  "per_seed": {
+    "1": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "2": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "3": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "4": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "5": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "6": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "7": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "8": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "9": {
+      "train_communities": 830,
+      "test_communities": 208
+    },
+    "10": {
+      "train_communities": 830,
+      "test_communities": 208
+    }
+  },
+  "n_components": 842,
+  "largest_component_frac": 0.7517
+}

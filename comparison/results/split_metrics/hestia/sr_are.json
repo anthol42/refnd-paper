@@ -2,6 +2,6 @@
   "method": "hestia",
   "dataset": "sr_are",
   "seed": null,
-  "seconds": 10.33,
-  "peak_rss_mb": 328.8
+  "seconds": 9.27,
+  "peak_rss_mb": 328.3
 }

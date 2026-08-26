@@ -2,6 +2,6 @@
   "method": "datasail",
   "dataset": "pgp_broccatelli",
   "seed": 7,
-  "seconds": 1006.3,
-  "peak_rss_mb": 720.0
+  "seconds": 1006.02,
+  "peak_rss_mb": 718.0
 }

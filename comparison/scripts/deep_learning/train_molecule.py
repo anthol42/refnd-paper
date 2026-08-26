@@ -38,6 +38,19 @@ def main():
     y = df["label"].values.astype(np.float32)
 
     tr_idx, val_idx, te_idx = load_split(args.splits_dir, args.method, args.dataset, args.seed)
+    tr_idx = np.asarray(tr_idx, dtype=np.int64)
+    val_idx = np.asarray(val_idx, dtype=np.int64)
+    te_idx = np.asarray(te_idx, dtype=np.int64)
+
+    # Degenerate split (e.g. hestia giant-component collapse -> empty test): nothing
+    # to evaluate. Record null and exit 0 so it aggregates as missing rather than
+    # crashing the array task and cancelling finalize.
+    if te_idx.size == 0 or tr_idx.size == 0:
+        print(f"[{args.dataset}][{args.method}][seed={args.seed}] SKIP degenerate split "
+              f"(train={tr_idx.size}, val={val_idx.size}, test={te_idx.size}) -> null result")
+        save_seed_result(args.results_dir, "molecule", args.dataset, args.method, args.seed,
+                         {"linear": None, "linear_train": None, "mlp": None, "mlp_train": None})
+        return
 
     embed_dim = X.shape[1]
     scores = train_and_evaluate(

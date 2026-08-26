@@ -2,6 +2,6 @@
   "method": "refnd",
   "dataset": "dbaasp_amp",
   "seed": null,
-  "seconds": 9.05,
-  "peak_rss_mb": 410.9
+  "seconds": 7.83,
+  "peak_rss_mb": 432.5
 }

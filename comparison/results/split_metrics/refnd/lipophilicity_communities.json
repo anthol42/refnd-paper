@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "lipophilicity",
+  "n_nodes": 4200,
+  "n_communities": 999,
+  "largest_community_frac": 0.0386,
+  "singleton_communities": 666,
+  "per_seed": {
+    "1": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "2": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "3": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "4": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "5": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "6": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "7": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "8": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "9": {
+      "train_communities": 799,
+      "test_communities": 200
+    },
+    "10": {
+      "train_communities": 799,
+      "test_communities": 200
+    }
+  },
+  "n_components": 926,
+  "largest_component_frac": 0.4174
+}

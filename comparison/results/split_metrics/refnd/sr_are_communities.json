@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "sr_are",
+  "n_nodes": 5825,
+  "n_communities": 1409,
+  "largest_community_frac": 0.0894,
+  "singleton_communities": 999,
+  "per_seed": {
+    "1": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "2": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "3": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "4": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "5": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "6": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "7": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "8": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "9": {
+      "train_communities": 1127,
+      "test_communities": 282
+    },
+    "10": {
+      "train_communities": 1127,
+      "test_communities": 282
+    }
+  },
+  "n_components": 1209,
+  "largest_component_frac": 0.6601
+}

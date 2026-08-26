@@ -13,14 +13,21 @@ ways to downsample the train set by a target fraction:
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
 from refnd.core import HNSWState, INWeightType, LeidenObjective, find_communities, partition
 
-from .datasets import DatasetConfig
+from .cache import CacheStore
+from .datasets import DATASETS, DatasetConfig, load_dataset
+from .embeddings import compute_embeddings
 from .mlp import train_eval_mlp
+
+DEFAULT_DROP_FRACTIONS = [0.0, 0.05, 0.10, 0.20, 0.40, 0.60]
+DEFAULT_N_REPEATS = 30
 
 
 def build_community_split(
@@ -158,3 +165,91 @@ def run_starvation_repeat(
         "community_score": community_result["score"],
         "random_score": random_result["score"],
     }
+
+
+def run_starvation_experiment(
+    name: str,
+    threshold: float,
+    gamma: float,
+    out_path: str | Path,
+    *,
+    split_seed: int = 7,
+    drop_fractions: list[float] | None = None,
+    n_repeats: int = DEFAULT_N_REPEATS,
+) -> dict:
+    """End-to-end data-starvation experiment for one registered dataset.
+
+    Loads the dataset + embeddings through `src/` (download + cache, same path as
+    dbaasp), builds a community-based train/val/test split, then at each drop
+    fraction downsamples the train set two ways (whole communities vs. the same
+    number of random samples) and trains an MLP head, scoring the fixed test set
+    with the dataset's metric. Writes JSON and returns the results dict.
+    """
+    from rich import print
+
+    drop_fractions = drop_fractions if drop_fractions is not None else list(DEFAULT_DROP_FRACTIONS)
+    cfg = DATASETS[name]
+    cache = CacheStore()
+
+    print(f"[bold][orange2]=== Data Starvation: {name} ===[/][/]")
+    data, labels = load_dataset(name, cache)
+    print(f"  {len(data):,} samples")
+    embs = compute_embeddings(name, data, cfg, cache)
+
+    print("Building community-based train/val/test split...")
+    split = build_community_split(data, threshold, gamma, cfg, seed=split_seed)
+    communities = split["communities"]
+    train_idx, val_idx, test_idx = split["train_idx"], split["val_idx"], split["test_idx"]
+    print(f"  train={len(train_idx)}  val={len(val_idx)}  test={len(test_idx)}")
+
+    results: dict = {
+        "dataset": name,
+        "n_train": len(train_idx),
+        "n_val": len(val_idx),
+        "n_test": len(test_idx),
+        "drop_fractions": drop_fractions,
+        "n_repeats": n_repeats,
+        "gamma": gamma,
+        "threshold": threshold,
+        "metric": cfg.metric,
+        "by_drop_fraction": {},
+    }
+
+    for drop_frac in drop_fractions:
+        print(f"\n[green]-- drop_frac={drop_frac:.0%} --[/]")
+        community_scores, random_scores, n_dropped_list = [], [], []
+        n_eff_community_list, n_eff_random_list = [], []
+        for seed in range(n_repeats):
+            r = run_starvation_repeat(
+                embs, labels, cfg.metric, communities,
+                train_idx, val_idx, test_idx, drop_frac, seed,
+            )
+            community_scores.append(r["community_score"])
+            random_scores.append(r["random_score"])
+            n_dropped_list.append(r["n_dropped"])
+            n_eff_community_list.append(r["n_eff_community"])
+            n_eff_random_list.append(r["n_eff_random"])
+            print(f"  seed {seed}: dropped={r['n_dropped']}  "
+                  f"community={r['community_score']:.4f} (n_eff={r['n_eff_community']})  "
+                  f"random={r['random_score']:.4f} (n_eff={r['n_eff_random']})")
+
+        community_arr = np.array(community_scores)
+        random_arr = np.array(random_scores)
+        results["by_drop_fraction"][f"{drop_frac}"] = {
+            "n_dropped_mean": float(np.mean(n_dropped_list)),
+            "n_eff_community_mean": float(np.mean(n_eff_community_list)),
+            "n_eff_community_std": float(np.std(n_eff_community_list)),
+            "n_eff_random_mean": float(np.mean(n_eff_random_list)),
+            "n_eff_random_std": float(np.std(n_eff_random_list)),
+            "community_score_mean": float(community_arr.mean()),
+            "community_score_std": float(community_arr.std()),
+            "random_score_mean": float(random_arr.mean()),
+            "random_score_std": float(random_arr.std()),
+        }
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n[bold]Results saved to {out_path}[/]")
+    return results

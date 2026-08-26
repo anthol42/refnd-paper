@@ -1,0 +1,52 @@
+{
+  "method": "hestia",
+  "dataset": "pgp_broccatelli",
+  "n_nodes": 1218,
+  "n_communities": 336,
+  "largest_community_frac": 0.3949,
+  "singleton_communities": 246,
+  "per_seed": {
+    "1": {
+      "train_communities": 250,
+      "test_communities": 86
+    },
+    "2": {
+      "train_communities": 210,
+      "test_communities": 126
+    },
+    "3": {
+      "train_communities": 187,
+      "test_communities": 149
+    },
+    "4": {
+      "train_communities": 210,
+      "test_communities": 126
+    },
+    "5": {
+      "train_communities": 232,
+      "test_communities": 104
+    },
+    "6": {
+      "train_communities": 232,
+      "test_communities": 104
+    },
+    "7": {
+      "train_communities": 245,
+      "test_communities": 91
+    },
+    "8": {
+      "train_communities": 244,
+      "test_communities": 92
+    },
+    "9": {
+      "train_communities": 223,
+      "test_communities": 113
+    },
+    "10": {
+      "train_communities": 203,
+      "test_communities": 133
+    }
+  },
+  "n_components": 336,
+  "largest_component_frac": 0.3949
+}

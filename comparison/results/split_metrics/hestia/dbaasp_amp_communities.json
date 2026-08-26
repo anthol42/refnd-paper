@@ -1,0 +1,52 @@
+{
+  "method": "hestia",
+  "dataset": "dbaasp_amp",
+  "n_nodes": 10664,
+  "n_communities": 200,
+  "largest_community_frac": 0.9782,
+  "singleton_communities": 183,
+  "per_seed": {
+    "1": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "2": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "3": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "4": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "5": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "6": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "7": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "8": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "9": {
+      "train_communities": 1,
+      "test_communities": 199
+    },
+    "10": {
+      "train_communities": 1,
+      "test_communities": 199
+    }
+  },
+  "n_components": 200,
+  "largest_component_frac": 0.9782
+}

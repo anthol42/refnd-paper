@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "caco2_wang",
+  "n_nodes": 910,
+  "n_communities": 284,
+  "largest_community_frac": 0.0484,
+  "singleton_communities": 163,
+  "per_seed": {
+    "1": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "2": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "3": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "4": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "5": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "6": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "7": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "8": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "9": {
+      "train_communities": 227,
+      "test_communities": 57
+    },
+    "10": {
+      "train_communities": 227,
+      "test_communities": 57
+    }
+  },
+  "n_components": 283,
+  "largest_component_frac": 0.0516
+}

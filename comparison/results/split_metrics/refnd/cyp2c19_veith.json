@@ -2,6 +2,6 @@
   "method": "refnd",
   "dataset": "cyp2c19_veith",
   "seed": null,
-  "seconds": 7.47,
-  "peak_rss_mb": 5991.5
+  "seconds": 49.24,
+  "peak_rss_mb": 1354.7
 }

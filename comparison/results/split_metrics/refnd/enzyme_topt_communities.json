@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "enzyme_topt",
+  "n_nodes": 1886,
+  "n_communities": 1365,
+  "largest_community_frac": 0.0122,
+  "singleton_communities": 1097,
+  "per_seed": {
+    "1": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "2": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "3": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "4": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "5": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "6": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "7": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "8": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "9": {
+      "train_communities": 1092,
+      "test_communities": 273
+    },
+    "10": {
+      "train_communities": 1092,
+      "test_communities": 273
+    }
+  },
+  "n_components": 1365,
+  "largest_component_frac": 0.0122
+}

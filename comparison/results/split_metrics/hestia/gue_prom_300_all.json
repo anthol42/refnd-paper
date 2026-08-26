@@ -2,6 +2,6 @@
   "method": "hestia",
   "dataset": "gue_prom_300_all",
   "seed": null,
-  "seconds": 261.63,
-  "peak_rss_mb": 5814.3
+  "seconds": 146.98,
+  "peak_rss_mb": 5852.4
 }

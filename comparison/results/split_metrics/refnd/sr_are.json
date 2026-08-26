@@ -2,6 +2,6 @@
   "method": "refnd",
   "dataset": "sr_are",
   "seed": null,
-  "seconds": 5.82,
-  "peak_rss_mb": 5989.4
+  "seconds": 0.94,
+  "peak_rss_mb": 356.0
 }

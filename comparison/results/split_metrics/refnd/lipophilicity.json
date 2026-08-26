@@ -2,6 +2,6 @@
   "method": "refnd",
   "dataset": "lipophilicity",
   "seed": null,
-  "seconds": 5.81,
-  "peak_rss_mb": 5982.9
+  "seconds": 0.9,
+  "peak_rss_mb": 339.7
 }

@@ -1,0 +1,52 @@
+{
+  "method": "hestia",
+  "dataset": "caco2_wang",
+  "n_nodes": 910,
+  "n_communities": 272,
+  "largest_community_frac": 0.0516,
+  "singleton_communities": 156,
+  "per_seed": {
+    "1": {
+      "train_communities": 209,
+      "test_communities": 63
+    },
+    "2": {
+      "train_communities": 210,
+      "test_communities": 62
+    },
+    "3": {
+      "train_communities": 213,
+      "test_communities": 59
+    },
+    "4": {
+      "train_communities": 210,
+      "test_communities": 62
+    },
+    "5": {
+      "train_communities": 214,
+      "test_communities": 58
+    },
+    "6": {
+      "train_communities": 213,
+      "test_communities": 59
+    },
+    "7": {
+      "train_communities": 169,
+      "test_communities": 103
+    },
+    "8": {
+      "train_communities": 198,
+      "test_communities": 74
+    },
+    "9": {
+      "train_communities": 216,
+      "test_communities": 56
+    },
+    "10": {
+      "train_communities": 228,
+      "test_communities": 44
+    }
+  },
+  "n_components": 272,
+  "largest_component_frac": 0.0516
+}

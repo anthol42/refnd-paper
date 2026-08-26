@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "pgp_broccatelli",
+  "n_nodes": 1218,
+  "n_communities": 378,
+  "largest_community_frac": 0.1502,
+  "singleton_communities": 267,
+  "per_seed": {
+    "1": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "2": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "3": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "4": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "5": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "6": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "7": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "8": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "9": {
+      "train_communities": 302,
+      "test_communities": 76
+    },
+    "10": {
+      "train_communities": 302,
+      "test_communities": 76
+    }
+  },
+  "n_components": 363,
+  "largest_component_frac": 0.367
+}

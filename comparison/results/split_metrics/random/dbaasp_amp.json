@@ -2,6 +2,6 @@
   "method": "random",
   "dataset": "dbaasp_amp",
   "seed": null,
-  "seconds": 0.05,
-  "peak_rss_mb": 115.1
+  "seconds": 0.1,
+  "peak_rss_mb": 116.1
 }

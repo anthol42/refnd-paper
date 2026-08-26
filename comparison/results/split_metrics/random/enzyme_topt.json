@@ -1,0 +1,7 @@
+{
+  "method": "random",
+  "dataset": "enzyme_topt",
+  "seed": null,
+  "seconds": 0.02,
+  "peak_rss_mb": 130.7
+}

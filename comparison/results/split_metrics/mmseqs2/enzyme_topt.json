@@ -1,0 +1,7 @@
+{
+  "method": "mmseqs2",
+  "dataset": "enzyme_topt",
+  "seed": null,
+  "seconds": 66.54,
+  "peak_rss_mb": 921.9
+}

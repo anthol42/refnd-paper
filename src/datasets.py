@@ -60,6 +60,69 @@ DATASETS: dict[str, DatasetConfig] = {
         proximity_threshold=0.5,
         kernel_params={"matrix": ScoringMatrix.Blosum62},
     ),
+    # ── data-starvation benchmark datasets (mirror of refnd_exp) ──────────────
+    # Molecule datasets share TanimotoBit + ChemBERTa; proximity_threshold 0.6
+    # (distance) = 0.4 Tanimoto similarity, matching the cluster benchmark.
+    "enzyme_topt": DatasetConfig(
+        modality=KernelVariant.AlignmentGlobal,
+        metric="pcc",
+        encoder="EvolutionaryScale/esmc-300m",
+        proximity_threshold=0.6,
+        kernel_params={"matrix": ScoringMatrix.Blosum62},
+    ),
+    "cyp2c19_veith": DatasetConfig(
+        modality=KernelVariant.TanimotoBit,
+        metric="mcc",
+        encoder="seyonec/ChemBERTa-zinc-base-v1",
+        proximity_threshold=0.6,
+        kernel_params={},
+    ),
+    "caco2_wang": DatasetConfig(
+        modality=KernelVariant.TanimotoBit,
+        metric="pcc",
+        encoder="seyonec/ChemBERTa-zinc-base-v1",
+        proximity_threshold=0.6,
+        kernel_params={},
+    ),
+    "pgp_broccatelli": DatasetConfig(
+        modality=KernelVariant.TanimotoBit,
+        metric="mcc",
+        encoder="seyonec/ChemBERTa-zinc-base-v1",
+        proximity_threshold=0.6,
+        kernel_params={},
+    ),
+    "ames": DatasetConfig(
+        modality=KernelVariant.TanimotoBit,
+        metric="mcc",
+        encoder="seyonec/ChemBERTa-zinc-base-v1",
+        proximity_threshold=0.6,
+        kernel_params={},
+    ),
+    "lipophilicity": DatasetConfig(
+        modality=KernelVariant.TanimotoBit,
+        metric="pcc",
+        encoder="seyonec/ChemBERTa-zinc-base-v1",
+        proximity_threshold=0.6,
+        kernel_params={},
+    ),
+    "sr_are": DatasetConfig(
+        modality=KernelVariant.TanimotoBit,
+        metric="mcc",
+        encoder="seyonec/ChemBERTa-zinc-base-v1",
+        proximity_threshold=0.6,
+        kernel_params={},
+    ),
+}
+
+# TDC molecule datasets: name -> (TDC single_pred module, TDC dataset name).
+# `is_classification` decides int (mcc) vs float (pcc) labels.
+_TDC_MOLECULES: dict[str, tuple[str, str, bool]] = {
+    "cyp2c19_veith":   ("ADME", "CYP2C19_Veith",             True),
+    "caco2_wang":      ("ADME", "Caco2_Wang",                False),
+    "pgp_broccatelli": ("ADME", "Pgp_Broccatelli",           True),
+    "ames":            ("Tox",  "AMES",                      True),
+    "lipophilicity":   ("ADME", "Lipophilicity_AstraZeneca", False),
+    "sr_are":          ("Tox",  "SR-ARE",                    True),
 }
 
 
@@ -93,9 +156,21 @@ def load_dataset(name: str, cache: CacheStore) -> tuple[list[Any], np.ndarray]:
     cached = cache.get_dataset(name)
     if cached is not None:
         data, labels = cached
-        if name in ("ld50_zhu", "belka"):
+        if name in ("ld50_zhu", "belka") or name in _TDC_MOLECULES:
             from refnd.utils import BitFingerprint
             data = [BitFingerprint.from_np(row) for row in data]
+        return data, labels
+
+    if name in _TDC_MOLECULES:
+        module_name, tdc_name, is_classification = _TDC_MOLECULES[name]
+        fp_arrays, labels, smiles = _load_tdc_molecule(module_name, tdc_name, is_classification)
+        cache.store_dataset(name, fp_arrays, labels)
+        cache.store_dataset(f"{name}_smiles", smiles, np.array([]))
+        from refnd.utils import BitFingerprint
+        return [BitFingerprint.from_np(row) for row in fp_arrays], labels
+    if name == "enzyme_topt":
+        data, labels = _load_enzyme_topt()
+        cache.store_dataset(name, data, labels)
         return data, labels
 
     if name == "peptide_atlas":
@@ -264,6 +339,51 @@ def _load_ld50_zhu() -> tuple[Any, np.ndarray, list[str]]:
 
     # Store as numpy array so it's picklable; reconstruct BitFingerprint on load
     return np.array(fp_arrays, dtype=bool), np.log10(np.array(labels, dtype=np.float32)), smiles
+
+
+def _load_enzyme_topt() -> tuple[list[str], np.ndarray]:
+    """Enzyme optimal-temperature (Topt) regression, DeepET-sourced via
+    proteinglm/optimal_temperature (the version xTrimoPGLM/Hestia used). Pool the
+    published train+test and re-split downstream, matching the cluster benchmark."""
+    import pandas as pd
+    from huggingface_hub import snapshot_download
+
+    print("Downloading enzyme Topt (proteinglm/optimal_temperature)...")
+    d = snapshot_download(repo_id="proteinglm/optimal_temperature", repo_type="dataset")
+    frames = [pd.read_parquet(f"{d}/data/{s}-00000-of-00001.parquet") for s in ("train", "test")]
+    df = pd.concat(frames, ignore_index=True)
+    df = df.rename(columns={"seq": "sequence"})[["sequence", "label"]].dropna()
+    df = df.drop_duplicates(subset="sequence").reset_index(drop=True)
+    return df["sequence"].tolist(), df["label"].astype(np.float32).values
+
+
+def _load_tdc_molecule(
+    module_name: str, tdc_name: str, is_classification: bool
+) -> tuple[Any, np.ndarray, list[str]]:
+    """Load a TDC single-pred molecule dataset as Morgan fingerprints + SMILES,
+    mirroring `_load_ld50_zhu` (fp stored as bool array for pickling). Labels are
+    kept raw: int for classification (mcc), float for regression (pcc)."""
+    import numpy as np
+    from rdkit import Chem
+    from rdkit.Chem import rdFingerprintGenerator
+    from tdc.single_pred import ADME, Tox
+
+    module_map = {"ADME": ADME, "Tox": Tox}
+    print(f"Downloading TDC {module_name}/{tdc_name}...")
+    df = module_map[module_name](name=tdc_name).get_data()[["Drug", "Y"]].dropna()
+
+    morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
+    fp_arrays, labels, smiles = [], [], []
+    for _, row in df.iterrows():
+        mol = Chem.MolFromSmiles(row["Drug"])
+        if mol is None:
+            continue
+        fp_arrays.append(np.array(morgan_gen.GetFingerprint(mol), dtype=bool))
+        labels.append(row["Y"])
+        smiles.append(row["Drug"])
+
+    label_dtype = np.int64 if is_classification else np.float32
+    return np.array(fp_arrays, dtype=bool), np.array(labels, dtype=label_dtype), smiles
 
 
 _BELKA_PROTEINS = ["BRD4", "HSA", "sEH"]  # fixed bit order for the 3-bit multi-label vector

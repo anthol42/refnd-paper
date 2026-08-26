@@ -2,6 +2,6 @@
   "method": "hestia",
   "dataset": "pgp_broccatelli",
   "seed": null,
-  "seconds": 1.0,
-  "peak_rss_mb": 298.1
+  "seconds": 0.82,
+  "peak_rss_mb": 296.9
 }

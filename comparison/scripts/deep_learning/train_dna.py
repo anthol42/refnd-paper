@@ -38,6 +38,19 @@ def main():
     y = df["label"].values.astype(np.float32)
 
     tr_idx, val_idx, te_idx = load_split(args.splits_dir, args.method, args.dataset, args.seed)
+    tr_idx = np.asarray(tr_idx, dtype=np.int64)
+    val_idx = np.asarray(val_idx, dtype=np.int64)
+    te_idx = np.asarray(te_idx, dtype=np.int64)
+
+    # A degenerate split (e.g. hestia's giant-component collapse -> empty test) has
+    # nothing to evaluate. Record a null result and exit 0 so aggregation treats it
+    # as missing, instead of crashing the array task and cancelling finalize.
+    if te_idx.size == 0 or tr_idx.size == 0:
+        print(f"[{args.dataset}][{args.method}][seed={args.seed}] SKIP degenerate split "
+              f"(train={tr_idx.size}, val={val_idx.size}, test={te_idx.size}) -> null result")
+        save_seed_result(args.results_dir, "dna", args.dataset, args.method, args.seed,
+                         {"linear": None, "linear_train": None, "mlp": None, "mlp_train": None})
+        return
 
     embed_dim = X.shape[1]
     scores = train_and_evaluate(

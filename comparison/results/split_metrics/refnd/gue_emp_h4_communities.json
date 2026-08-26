@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "gue_emp_h4",
+  "n_nodes": 14601,
+  "n_communities": 8916,
+  "largest_community_frac": 0.0577,
+  "singleton_communities": 8316,
+  "per_seed": {
+    "1": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "2": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "3": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "4": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "5": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "6": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "7": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "8": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "9": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    },
+    "10": {
+      "train_communities": 7132,
+      "test_communities": 1784
+    }
+  },
+  "n_components": 8837,
+  "largest_component_frac": 0.3466
+}

@@ -1,0 +1,52 @@
+{
+  "method": "hestia",
+  "dataset": "cyp2c19_veith",
+  "n_nodes": 12665,
+  "n_communities": 2352,
+  "largest_community_frac": 0.7086,
+  "singleton_communities": 1838,
+  "per_seed": {
+    "1": {
+      "train_communities": 684,
+      "test_communities": 1668
+    },
+    "2": {
+      "train_communities": 834,
+      "test_communities": 1518
+    },
+    "3": {
+      "train_communities": 740,
+      "test_communities": 1612
+    },
+    "4": {
+      "train_communities": 744,
+      "test_communities": 1608
+    },
+    "5": {
+      "train_communities": 846,
+      "test_communities": 1506
+    },
+    "6": {
+      "train_communities": 721,
+      "test_communities": 1631
+    },
+    "7": {
+      "train_communities": 709,
+      "test_communities": 1643
+    },
+    "8": {
+      "train_communities": 832,
+      "test_communities": 1520
+    },
+    "9": {
+      "train_communities": 691,
+      "test_communities": 1661
+    },
+    "10": {
+      "train_communities": 723,
+      "test_communities": 1629
+    }
+  },
+  "n_components": 2352,
+  "largest_component_frac": 0.7086
+}

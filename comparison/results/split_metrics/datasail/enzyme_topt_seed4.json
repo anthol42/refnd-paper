@@ -1,0 +1,7 @@
+{
+  "method": "datasail",
+  "dataset": "enzyme_topt",
+  "seed": 4,
+  "seconds": 10.77,
+  "peak_rss_mb": 942.5
+}

@@ -1,0 +1,88 @@
+{
+  "dataset": "pgp_broccatelli",
+  "modality": "molecule",
+  "task": "classification",
+  "metric": "auroc",
+  "gamma": 3.3667729316618426e-07,
+  "threshold": 0.3,
+  "n_train": 786,
+  "n_val": 185,
+  "n_test": 247,
+  "drop_fractions": [
+    0.0,
+    0.05,
+    0.1,
+    0.2,
+    0.4,
+    0.6
+  ],
+  "n_repeats": 30,
+  "by_drop_fraction": {
+    "0.0": {
+      "n_dropped_mean": 0.0,
+      "n_eff_community_mean": 76.0,
+      "n_eff_community_std": 0.0,
+      "n_eff_random_mean": 76.0,
+      "n_eff_random_std": 0.0,
+      "community_score_mean": 0.8611066398390342,
+      "community_score_std": 0.009063385685282123,
+      "random_score_mean": 0.8611066398390342,
+      "random_score_std": 0.009063385685282123
+    },
+    "0.05": {
+      "n_dropped_mean": 44.166666666666664,
+      "n_eff_community_mean": 71.83333333333333,
+      "n_eff_community_std": 1.343709624716425,
+      "n_eff_random_mean": 75.8,
+      "n_eff_random_std": 0.47609522856952324,
+      "community_score_mean": 0.8613033758104182,
+      "community_score_std": 0.009524132006224352,
+      "random_score_mean": 0.8599172814665771,
+      "random_score_std": 0.012084792385022998
+    },
+    "0.1": {
+      "n_dropped_mean": 82.36666666666666,
+      "n_eff_community_mean": 68.2,
+      "n_eff_community_std": 1.9731531449264994,
+      "n_eff_random_mean": 75.36666666666666,
+      "n_eff_random_std": 0.9480975102218596,
+      "community_score_mean": 0.8610932260228036,
+      "community_score_std": 0.011091008412439063,
+      "random_score_mean": 0.8566867873910128,
+      "random_score_std": 0.013244815097225275
+    },
+    "0.2": {
+      "n_dropped_mean": 160.46666666666667,
+      "n_eff_community_mean": 60.56666666666667,
+      "n_eff_community_std": 2.728654532101042,
+      "n_eff_random_mean": 74.2,
+      "n_eff_random_std": 1.4236104336041748,
+      "community_score_mean": 0.8598412698412697,
+      "community_score_std": 0.010484375307788426,
+      "random_score_mean": 0.8557388777107087,
+      "random_score_std": 0.010187907980243032
+    },
+    "0.4": {
+      "n_dropped_mean": 319.06666666666666,
+      "n_eff_community_mean": 45.43333333333333,
+      "n_eff_community_std": 3.2422557305404247,
+      "n_eff_random_mean": 67.26666666666667,
+      "n_eff_random_std": 2.943165340619216,
+      "community_score_mean": 0.8534697071316788,
+      "community_score_std": 0.019352001950261582,
+      "random_score_mean": 0.8560205678515538,
+      "random_score_std": 0.013700271687913405
+    },
+    "0.6": {
+      "n_dropped_mean": 476.46666666666664,
+      "n_eff_community_mean": 30.2,
+      "n_eff_community_std": 3.590728802532062,
+      "n_eff_random_mean": 56.5,
+      "n_eff_random_std": 3.8794329482541645,
+      "community_score_mean": 0.8488821819807734,
+      "community_score_std": 0.0194009269566853,
+      "random_score_mean": 0.8387636932707355,
+      "random_score_std": 0.02818552358828371
+    }
+  }
+}

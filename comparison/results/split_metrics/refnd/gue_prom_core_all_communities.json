@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "gue_prom_core_all",
+  "n_nodes": 59196,
+  "n_communities": 848,
+  "largest_community_frac": 0.2884,
+  "singleton_communities": 33,
+  "per_seed": {
+    "1": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "2": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "3": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "4": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "5": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "6": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "7": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "8": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "9": {
+      "train_communities": 678,
+      "test_communities": 170
+    },
+    "10": {
+      "train_communities": 678,
+      "test_communities": 170
+    }
+  },
+  "n_components": 15,
+  "largest_component_frac": 0.9998
+}

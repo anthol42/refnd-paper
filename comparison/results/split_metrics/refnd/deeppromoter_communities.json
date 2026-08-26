@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "deeppromoter",
+  "n_nodes": 3382,
+  "n_communities": 104,
+  "largest_community_frac": 0.3495,
+  "singleton_communities": 47,
+  "per_seed": {
+    "1": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "2": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "3": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "4": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "5": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "6": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "7": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "8": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "9": {
+      "train_communities": 83,
+      "test_communities": 21
+    },
+    "10": {
+      "train_communities": 83,
+      "test_communities": 21
+    }
+  },
+  "n_components": 22,
+  "largest_component_frac": 0.9938
+}

@@ -1,0 +1,52 @@
+{
+  "method": "hestia",
+  "dataset": "lipophilicity",
+  "n_nodes": 4200,
+  "n_communities": 830,
+  "largest_community_frac": 0.5164,
+  "singleton_communities": 595,
+  "per_seed": {
+    "1": {
+      "train_communities": 520,
+      "test_communities": 310
+    },
+    "2": {
+      "train_communities": 507,
+      "test_communities": 323
+    },
+    "3": {
+      "train_communities": 476,
+      "test_communities": 354
+    },
+    "4": {
+      "train_communities": 457,
+      "test_communities": 373
+    },
+    "5": {
+      "train_communities": 467,
+      "test_communities": 363
+    },
+    "6": {
+      "train_communities": 447,
+      "test_communities": 383
+    },
+    "7": {
+      "train_communities": 454,
+      "test_communities": 376
+    },
+    "8": {
+      "train_communities": 436,
+      "test_communities": 394
+    },
+    "9": {
+      "train_communities": 518,
+      "test_communities": 312
+    },
+    "10": {
+      "train_communities": 484,
+      "test_communities": 346
+    }
+  },
+  "n_components": 830,
+  "largest_component_frac": 0.5164
+}

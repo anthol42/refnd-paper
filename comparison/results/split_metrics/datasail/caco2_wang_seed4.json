@@ -2,6 +2,6 @@
   "method": "datasail",
   "dataset": "caco2_wang",
   "seed": 4,
-  "seconds": 1012.94,
-  "peak_rss_mb": 635.2
+  "seconds": 1009.68,
+  "peak_rss_mb": 632.2
 }

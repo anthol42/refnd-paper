@@ -1,0 +1,52 @@
+{
+  "method": "hestia",
+  "dataset": "gue_prom_300_all",
+  "n_nodes": 59196,
+  "n_communities": 1,
+  "largest_community_frac": 1.0,
+  "singleton_communities": 0,
+  "per_seed": {
+    "1": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "2": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "3": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "4": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "5": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "6": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "7": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "8": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "9": {
+      "train_communities": 1,
+      "test_communities": 0
+    },
+    "10": {
+      "train_communities": 1,
+      "test_communities": 0
+    }
+  },
+  "n_components": 1,
+  "largest_component_frac": 1.0
+}

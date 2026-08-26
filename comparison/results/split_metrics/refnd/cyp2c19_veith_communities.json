@@ -1,0 +1,52 @@
+{
+  "method": "refnd",
+  "dataset": "cyp2c19_veith",
+  "n_nodes": 12665,
+  "n_communities": 3105,
+  "largest_community_frac": 0.0677,
+  "singleton_communities": 2187,
+  "per_seed": {
+    "1": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "2": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "3": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "4": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "5": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "6": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "7": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "8": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "9": {
+      "train_communities": 2484,
+      "test_communities": 621
+    },
+    "10": {
+      "train_communities": 2484,
+      "test_communities": 621
+    }
+  },
+  "n_components": 2799,
+  "largest_component_frac": 0.6527
+}
