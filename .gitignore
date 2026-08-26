@@ -228,3 +228,4 @@ threshold/__pycache__/
 
 .jupyter_ystore.db
 .jupyter/
+*.pdf
