@@ -7,6 +7,32 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+# Repo root (refnd-paper/), independent of cwd -- split_utils.py lives at
+# comparison/scripts/split_utils.py.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+# comparison/ protein dataset key -> src/datasets.py loader key. dbaasp_amp has
+# no dedicated loader; src.datasets' "dbaasp" (DBAASP, L-amino/canonical only,
+# E. coli MIC labels) is the closest auto-downloadable equivalent.
+_PROTEIN_SRC_DATASET = {
+    "dbaasp_amp": "dbaasp",
+    "enzyme_topt": "enzyme_topt",
+}
+
+
+def load_protein_sequences(dataset: str) -> list[str]:
+    """Sequences for a comparison/ protein dataset key, via src/datasets.py's
+    auto-downloading loaders (no comparison/data/ parquet required, no
+    hardcoded paths -- runs on any machine)."""
+    import sys
+    sys.path.insert(0, str(REPO_ROOT))
+    from src.cache import CacheStore
+    from src.datasets import load_dataset
+
+    src_name = _PROTEIN_SRC_DATASET[dataset]
+    sequences, _labels = load_dataset(src_name, CacheStore(root=str(REPO_ROOT / ".cache")))
+    return list(sequences)
+
 
 def _peak_rss_mb() -> float:
     """Process high-water RSS in MB, including any child processes (e.g. the

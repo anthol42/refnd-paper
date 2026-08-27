@@ -1,6 +1,6 @@
-"""Two-layer MLP with early stopping, supporting PCC (regression), MCC (classification)
-and MCC-multilabel (independent binary classification per label, e.g. BELKA's
-3 protein-binder bits)."""
+"""Two-layer MLP with early stopping, supporting PCC (regression), MCC or AUROC
+(binary/multiclass classification) and MCC-multilabel (independent binary
+classification per label, e.g. BELKA's 3 protein-binder bits)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from scipy.stats import pearsonr
-from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import matthews_corrcoef, roc_auc_score
 from torch.utils.data import DataLoader, TensorDataset
 
 
@@ -31,7 +31,7 @@ def train_eval_mlp(
     train_idx: list[int],
     val_idx: list[int],
     test_idx: list[int],
-    metric: str,                # "pcc", "mcc", or "mcc-multilabel"
+    metric: str,                # "pcc", "mcc", "auroc", or "mcc-multilabel"
     epochs: int = 300,
     lr: float = 0.003,
     patience: int = 15,
@@ -45,7 +45,7 @@ def train_eval_mlp(
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    is_classification = metric == "mcc"
+    is_classification = metric in ("mcc", "auroc")
     is_multilabel     = metric == "mcc-multilabel"
     n_classes = int(np.max(labels) + 1) if is_classification else 1
     n_labels  = labels.shape[1] if is_multilabel else 1
@@ -128,8 +128,14 @@ def train_eval_mlp(
     y_te = y_all[test_idx].numpy()
 
     if is_classification:
-        preds = test_out.argmax(dim=-1).numpy()
-        score = float(matthews_corrcoef(y_te, preds))
+        if metric == "auroc":
+            # AUROC needs a ranking score, not a hard prediction -- softmax
+            # probability of the positive class.
+            probs = torch.softmax(test_out, dim=-1)[:, 1].numpy()
+            score = float(roc_auc_score(y_te, probs))
+        else:
+            preds = test_out.argmax(dim=-1).numpy()
+            score = float(matthews_corrcoef(y_te, preds))
         per_label_scores = None
     elif is_multilabel:
         preds = (torch.sigmoid(test_out) > 0.5).numpy().astype(np.int64)

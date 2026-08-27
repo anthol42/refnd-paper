@@ -1,0 +1,30 @@
+{
+  "dataset": "dbaasp",
+  "threshold": 0.3,
+  "gamma": 2.106840413550154e-11,
+  "objective": "LeidenObjective.CPM",
+  "metric": "pcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 1327.0,
+  "n_nonsingleton_train_matched_mean": 1327.0,
+  "singleton_score_mean": 0.5379391888777415,
+  "singleton_score_std": 0.039277428939555326,
+  "singleton_score_sem": 0.007171044610333556,
+  "nonsingleton_score_mean": 0.5564297735691071,
+  "nonsingleton_score_std": 0.05341175991733532,
+  "nonsingleton_score_sem": 0.00975160858092494,
+  "diff_mean": -0.01849058469136556,
+  "diff_std": 0.040841469128475534,
+  "t_stat": -2.4797615152044967,
+  "p_value": 0.01920098429441121,
+  "significant": true
+}

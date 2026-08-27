@@ -2,51 +2,51 @@
   "method": "hestia",
   "dataset": "enzyme_topt",
   "n_nodes": 1886,
-  "n_communities": 39,
-  "largest_community_frac": 0.9767,
-  "singleton_communities": 34,
+  "n_communities": 342,
+  "largest_community_frac": 0.7725,
+  "singleton_communities": 285,
   "per_seed": {
     "1": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 38,
+      "test_communities": 304
     },
     "2": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 49,
+      "test_communities": 293
     },
     "3": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 44,
+      "test_communities": 298
     },
     "4": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 39,
+      "test_communities": 303
     },
     "5": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 42,
+      "test_communities": 300
     },
     "6": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 41,
+      "test_communities": 301
     },
     "7": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 47,
+      "test_communities": 295
     },
     "8": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 39,
+      "test_communities": 303
     },
     "9": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 48,
+      "test_communities": 294
     },
     "10": {
-      "train_communities": 1,
-      "test_communities": 38
+      "train_communities": 42,
+      "test_communities": 300
     }
   },
-  "n_components": 39,
-  "largest_component_frac": 0.9767
+  "n_components": 342,
+  "largest_component_frac": 0.7725
 }

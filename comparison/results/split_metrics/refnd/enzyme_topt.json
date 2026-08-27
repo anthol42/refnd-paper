@@ -2,6 +2,6 @@
   "method": "refnd",
   "dataset": "enzyme_topt",
   "seed": null,
-  "seconds": 60.78,
-  "peak_rss_mb": 2110.0
+  "seconds": 21.65,
+  "peak_rss_mb": 1043.5
 }

@@ -1,0 +1,30 @@
+{
+  "dataset": "lipophilicity",
+  "threshold": 0.4,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "pcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 945.2,
+  "n_nonsingleton_train_matched_mean": 945.2,
+  "singleton_score_mean": 0.5310100615024567,
+  "singleton_score_std": 0.040444667688213594,
+  "singleton_score_sem": 0.007384152274544968,
+  "nonsingleton_score_mean": 0.4977993567784627,
+  "nonsingleton_score_std": 0.04996960583229731,
+  "nonsingleton_score_sem": 0.009123160101330316,
+  "diff_mean": 0.033210704723993935,
+  "diff_std": 0.029571670633268356,
+  "t_stat": 6.151242638118215,
+  "p_value": 1.052732180011093e-06,
+  "significant": true
+}

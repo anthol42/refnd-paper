@@ -2,6 +2,6 @@
   "method": "hestia",
   "dataset": "dbaasp_amp",
   "seed": null,
-  "seconds": 10.93,
-  "peak_rss_mb": 744.2
+  "seconds": 2.49,
+  "peak_rss_mb": 1035.7
 }

@@ -107,22 +107,33 @@ DATASETS: dict[str, DatasetConfig] = {
     ),
     "sr_are": DatasetConfig(
         modality=KernelVariant.TanimotoBit,
-        metric="mcc",
+        # AUROC, not MCC: SR-ARE is heavily class-imbalanced (~16% positive),
+        # which makes MCC collapse to 0 (or go negative) whenever a model
+        # leans toward the majority class -- especially likely inside
+        # data_starvation's small, community-based train subsets. AUROC
+        # measures ranking quality and isn't sensitive to that threshold
+        # collapse, matching how comparison/ scores this dataset.
+        metric="auroc",
         encoder="seyonec/ChemBERTa-zinc-base-v1",
         proximity_threshold=0.6,
         kernel_params={},
     ),
 }
 
-# TDC molecule datasets: name -> (TDC single_pred module, TDC dataset name).
-# `is_classification` decides int (mcc) vs float (pcc) labels.
-_TDC_MOLECULES: dict[str, tuple[str, str, bool]] = {
-    "cyp2c19_veith":   ("ADME", "CYP2C19_Veith",             True),
-    "caco2_wang":      ("ADME", "Caco2_Wang",                False),
-    "pgp_broccatelli": ("ADME", "Pgp_Broccatelli",           True),
-    "ames":            ("Tox",  "AMES",                      True),
-    "lipophilicity":   ("ADME", "Lipophilicity_AstraZeneca", False),
-    "sr_are":          ("Tox",  "SR-ARE",                    True),
+# TDC molecule datasets: name -> (TDC single_pred module, TDC dataset name,
+# is_classification, label_name). `is_classification` decides int (mcc) vs
+# float (pcc) labels. `label_name` is None for datasets that are their own
+# standalone TDC endpoint; SR-ARE isn't one -- it's one of 12 label columns
+# inside the multi-task Tox21 dataset (tdc.utils.retrieve_label_name_list
+# ('tox21') lists all 12), so it needs the underlying dataset name ("Tox21")
+# plus which column to select.
+_TDC_MOLECULES: dict[str, tuple[str, str, bool, str | None]] = {
+    "cyp2c19_veith":   ("ADME", "CYP2C19_Veith",             True,  None),
+    "caco2_wang":      ("ADME", "Caco2_Wang",                False, None),
+    "pgp_broccatelli": ("ADME", "Pgp_Broccatelli",           True,  None),
+    "ames":            ("Tox",  "AMES",                      True,  None),
+    "lipophilicity":   ("ADME", "Lipophilicity_AstraZeneca", False, None),
+    "sr_are":          ("Tox",  "Tox21",                     True,  "SR-ARE"),
 }
 
 
@@ -162,8 +173,8 @@ def load_dataset(name: str, cache: CacheStore) -> tuple[list[Any], np.ndarray]:
         return data, labels
 
     if name in _TDC_MOLECULES:
-        module_name, tdc_name, is_classification = _TDC_MOLECULES[name]
-        fp_arrays, labels, smiles = _load_tdc_molecule(module_name, tdc_name, is_classification)
+        module_name, tdc_name, is_classification, label_name = _TDC_MOLECULES[name]
+        fp_arrays, labels, smiles = _load_tdc_molecule(module_name, tdc_name, is_classification, label_name)
         cache.store_dataset(name, fp_arrays, labels)
         cache.store_dataset(f"{name}_smiles", smiles, np.array([]))
         from refnd.utils import BitFingerprint
@@ -358,19 +369,23 @@ def _load_enzyme_topt() -> tuple[list[str], np.ndarray]:
 
 
 def _load_tdc_molecule(
-    module_name: str, tdc_name: str, is_classification: bool
+    module_name: str, tdc_name: str, is_classification: bool, label_name: str | None = None,
 ) -> tuple[Any, np.ndarray, list[str]]:
     """Load a TDC single-pred molecule dataset as Morgan fingerprints + SMILES,
     mirroring `_load_ld50_zhu` (fp stored as bool array for pickling). Labels are
-    kept raw: int for classification (mcc), float for regression (pcc)."""
+    kept raw: int for classification (mcc), float for regression (pcc).
+
+    `label_name` selects one column out of a multi-task TDC dataset (e.g.
+    tdc_name="Tox21", label_name="SR-ARE"); None for datasets that are
+    already single-task."""
     import numpy as np
     from rdkit import Chem
     from rdkit.Chem import rdFingerprintGenerator
     from tdc.single_pred import ADME, Tox
 
     module_map = {"ADME": ADME, "Tox": Tox}
-    print(f"Downloading TDC {module_name}/{tdc_name}...")
-    df = module_map[module_name](name=tdc_name).get_data()[["Drug", "Y"]].dropna()
+    print(f"Downloading TDC {module_name}/{tdc_name}" + (f" (label={label_name})" if label_name else "") + "...")
+    df = module_map[module_name](name=tdc_name, label_name=label_name).get_data()[["Drug", "Y"]].dropna()
 
     morgan_gen = rdFingerprintGenerator.GetMorganGenerator(radius=2, fpSize=2048)
     fp_arrays, labels, smiles = [], [], []

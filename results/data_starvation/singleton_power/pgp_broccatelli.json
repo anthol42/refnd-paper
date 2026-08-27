@@ -1,0 +1,30 @@
+{
+  "dataset": "pgp_broccatelli",
+  "threshold": 0.6,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "mcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 174.6,
+  "n_nonsingleton_train_matched_mean": 174.6,
+  "singleton_score_mean": 0.3880982067999399,
+  "singleton_score_std": 0.2189062595651117,
+  "singleton_score_sem": 0.03996663211429757,
+  "nonsingleton_score_mean": 0.44242962956871235,
+  "nonsingleton_score_std": 0.13439222951949545,
+  "nonsingleton_score_sem": 0.024536551887079774,
+  "diff_mean": -0.054331422768772474,
+  "diff_std": 0.18203724535506902,
+  "t_stat": -1.634750392633197,
+  "p_value": 0.11291170548535903,
+  "significant": false
+}

@@ -1,0 +1,30 @@
+{
+  "dataset": "sr_are",
+  "threshold": 0.4,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "auroc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 1918.6,
+  "n_nonsingleton_train_matched_mean": 1918.6,
+  "singleton_score_mean": 0.7251743800118824,
+  "singleton_score_std": 0.02753857099338825,
+  "singleton_score_sem": 0.005027832178178732,
+  "nonsingleton_score_mean": 0.6896700422197921,
+  "nonsingleton_score_std": 0.024651135661875438,
+  "nonsingleton_score_sem": 0.004500661023376407,
+  "diff_mean": 0.035504337792090286,
+  "diff_std": 0.022936059674696807,
+  "t_stat": 8.478582186226403,
+  "p_value": 2.4227103585473945e-09,
+  "significant": true
+}

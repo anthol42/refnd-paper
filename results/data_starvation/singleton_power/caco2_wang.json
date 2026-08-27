@@ -1,0 +1,30 @@
+{
+  "dataset": "caco2_wang",
+  "threshold": 0.6,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "pcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 106.8,
+  "n_nonsingleton_train_matched_mean": 106.8,
+  "singleton_score_mean": 0.4822685390710831,
+  "singleton_score_std": 0.11335572614953074,
+  "singleton_score_sem": 0.020695829411492072,
+  "nonsingleton_score_mean": 0.40535101195176443,
+  "nonsingleton_score_std": 0.11661916245032573,
+  "nonsingleton_score_sem": 0.021291648637134283,
+  "diff_mean": 0.07691752711931864,
+  "diff_std": 0.0986612214270016,
+  "t_stat": 4.270113836157738,
+  "p_value": 0.00019129053774853919,
+  "significant": true
+}

@@ -1,0 +1,30 @@
+{
+  "dataset": "ames",
+  "threshold": 0.7,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "mcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 91.0,
+  "n_nonsingleton_train_matched_mean": 91.0,
+  "singleton_score_mean": 0.09362546518146589,
+  "singleton_score_std": 0.07315126463130062,
+  "singleton_score_sem": 0.013355532582864392,
+  "nonsingleton_score_mean": 0.11644436499616126,
+  "nonsingleton_score_std": 0.07482565301367408,
+  "nonsingleton_score_sem": 0.013661232678547902,
+  "diff_mean": -0.022818899814695353,
+  "diff_std": 0.07341070447600426,
+  "t_stat": -1.7025345629320936,
+  "p_value": 0.09935254020609229,
+  "significant": false
+}

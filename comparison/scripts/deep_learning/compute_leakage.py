@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from split_utils import load_protein_sequences
 
 BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 
@@ -42,8 +43,7 @@ def load_items(dtype, dataset):
         df = pd.read_parquet(BASE / "data" / "molecule" / f"{dataset}.parquet")
         return build_fingerprints(df["smiles"].tolist())
     if dtype == "protein":
-        df = pd.read_parquet(BASE / "data" / "protein" / f"{dataset}.parquet")
-        return df["sequence"].tolist()
+        return load_protein_sequences(dataset)
     df = pd.read_csv(BASE / "data" / "dna" / dataset / "pooled.csv")
     return df["sequence"].tolist()
 

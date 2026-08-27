@@ -1,52 +1,52 @@
 {
   "method": "hestia",
   "dataset": "dbaasp_amp",
-  "n_nodes": 10664,
-  "n_communities": 200,
-  "largest_community_frac": 0.9782,
-  "singleton_communities": 183,
+  "n_nodes": 9796,
+  "n_communities": 211,
+  "largest_community_frac": 0.974,
+  "singleton_communities": 190,
   "per_seed": {
     "1": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "2": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "3": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "4": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "5": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "6": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "7": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "8": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "9": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     },
     "10": {
       "train_communities": 1,
-      "test_communities": 199
+      "test_communities": 210
     }
   },
-  "n_components": 200,
-  "largest_component_frac": 0.9782
+  "n_components": 211,
+  "largest_component_frac": 0.974
 }

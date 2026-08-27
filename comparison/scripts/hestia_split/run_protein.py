@@ -12,9 +12,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from split_utils import (save_split, save_community_stats, split_train_val,
-                         track_split, SEEDS, PROTEIN_DATASETS)
+                         track_split, load_protein_sequences, SEEDS, PROTEIN_DATASETS)
 
-THRESHOLD = 0.40  # 40% identity (mid of Hestia's 0.3-0.5 protein range)
+THRESHOLD = 0.50  # 50% identity, matches refnd_split/run_protein.py's distance threshold
 TEST_RATIO = 0.20
 VAL_RATIO = 0.10
 
@@ -30,8 +30,9 @@ def main():
     from hestia.dataset_generator import HestiaGenerator, SimArguments
     from hestia.partition import ccpart_random
 
-    df = pd.read_parquet(Path(args.splits_dir).parent / "data" / "protein" / f"{args.dataset}.parquet")
-    df = df.reset_index(drop=True)
+    sequences = load_protein_sequences(args.dataset)
+    df = pd.DataFrame({"sequence": sequences})
+    print(f"[{args.dataset}] {len(df)} sequences")
 
     with track_split("hestia", args.dataset, args.splits_dir):
         gen = HestiaGenerator(df, verbose=False)

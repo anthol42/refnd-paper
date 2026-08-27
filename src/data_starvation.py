@@ -28,6 +28,7 @@ from .mlp import train_eval_mlp
 
 DEFAULT_DROP_FRACTIONS = [0.0, 0.05, 0.10, 0.20, 0.40, 0.60]
 DEFAULT_N_REPEATS = 30
+DEFAULT_N_SPLITS = 5
 
 
 def build_community_split(
@@ -41,6 +42,7 @@ def build_community_split(
     test_ratio: float = 0.2,
     val_ratio: float = 0.15,
     seed: int = 42,
+    objective: LeidenObjective = LeidenObjective.CPM,
 ) -> dict:
     """Build an HNSW graph, find communities, and split into train/val/test.
 
@@ -57,7 +59,7 @@ def build_community_split(
     )
     hnsw.build(progress=True)
     graph = hnsw.edges().graph(inweight_type=INWeightType.SimilarityComplement)
-    communities = find_communities(graph, gamma=gamma, objective=LeidenObjective.CPM)
+    communities = find_communities(graph, gamma=gamma, objective=objective)
 
     train_full_idx, test_idx = partition(
         communities, graph, test_ratio=test_ratio, seed=seed, post_filtering=False,
@@ -88,12 +90,25 @@ def community_downsample(
     communities: list[int],
     drop_frac: float,
     seed: int,
+    singletons_are_com: bool = False,
 ) -> list[int]:
     """Drop whole communities (restricted to `train_idx`) at random until at
     least `drop_frac` of `train_idx` has been removed.
 
+    `singletons_are_com` decides whether singleton communities (size 1) are
+    eligible to be dropped. Most datasets' singletons behave as outliers
+    (see `run_singleton_power_experiment`), so by default (False) they're
+    never touched -- only communities of size >=2 are eligible. For the few
+    datasets where singletons carry MORE per-sample generalization value than
+    non-singleton clusters (empirically, lipophilicity and caco2_wang),
+    `singletons_are_com=True` makes them eligible like any other community.
+    If the eligible communities can't reach target_drop on their own (only
+    possible with singletons_are_com=False, if non-singleton mass runs out),
+    this undershoots -- otherwise it only ever overshoots.
+
     Since communities can't be split, the actual dropped fraction may exceed
-    `drop_frac` slightly. Returns the kept indices (a subset of train_idx).
+    `drop_frac` slightly (or fall short, in the undershoot case above).
+    Returns the kept indices (a subset of train_idx).
     """
     rng = np.random.default_rng(seed)
     n_train = len(train_idx)
@@ -103,7 +118,8 @@ def community_downsample(
     for idx in train_idx:
         by_community.setdefault(communities[idx], []).append(idx)
 
-    community_ids = list(by_community)
+    min_size = 0 if singletons_are_com else 1
+    community_ids = [cid for cid, members in by_community.items() if len(members) > min_size]
     rng.shuffle(community_ids)
 
     dropped: set[int] = set()
@@ -133,10 +149,13 @@ def run_starvation_repeat(
     test_idx: list[int],
     drop_frac: float,
     seed: int,
+    singletons_are_com: bool = False,
 ) -> dict:
     """One repeat of both downsampling methods at `drop_frac`, sharing the
     same number of dropped samples (community-based decides it first)."""
-    community_train_idx, n_dropped = community_downsample(train_idx, communities, drop_frac, seed)
+    community_train_idx, n_dropped = community_downsample(
+        train_idx, communities, drop_frac, seed, singletons_are_com=singletons_are_com,
+    )
     random_train_idx = random_downsample(train_idx, n_dropped, seed)
 
     community_result = train_eval_mlp(
@@ -148,13 +167,19 @@ def run_starvation_repeat(
         metric=metric, seed=seed,
     )
 
-    # n_eff counts only non-singleton communities: singletons dominate the raw
-    # community count and do not contribute to final accuracy (They are outliers)
+    # n_eff counts communities that are eligible to be dropped by
+    # community_downsample -- non-singleton only by default (singletons are
+    # outliers, don't contribute to n_eff), or ALL communities including
+    # singletons when singletons_are_com=True (their singletons carry real
+    # per-sample generalization value -- see run_singleton_power_experiment).
     from collections import Counter
     train_sizes = Counter(communities[i] for i in train_idx)
-    non_singleton_ids = {cid for cid, sz in train_sizes.items() if sz > 1}
-    n_eff_community = len({communities[i] for i in community_train_idx} & non_singleton_ids)
-    n_eff_random = len({communities[i] for i in random_train_idx} & non_singleton_ids)
+    if singletons_are_com:
+        eligible_ids = set(train_sizes.keys())
+    else:
+        eligible_ids = {cid for cid, sz in train_sizes.items() if sz > 1}
+    n_eff_community = len({communities[i] for i in community_train_idx} & eligible_ids)
+    n_eff_random = len({communities[i] for i in random_train_idx} & eligible_ids)
 
     return {
         "n_dropped": n_dropped,
@@ -174,18 +199,40 @@ def run_starvation_experiment(
     out_path: str | Path,
     *,
     split_seed: int = 7,
+    n_splits: int = DEFAULT_N_SPLITS,
     drop_fractions: list[float] | None = None,
     n_repeats: int = DEFAULT_N_REPEATS,
+    objective: LeidenObjective = LeidenObjective.CPM,
+    singletons_are_com: bool = False,
 ) -> dict:
     """End-to-end data-starvation experiment for one registered dataset.
 
     Loads the dataset + embeddings through `src/` (download + cache, same path as
-    dbaasp), builds a community-based train/val/test split, then at each drop
-    fraction downsamples the train set two ways (whole communities vs. the same
-    number of random samples) and trains an MLP head, scoring the fixed test set
-    with the dataset's metric. Writes JSON and returns the results dict.
+    dbaasp), builds `n_splits` independent community-based train/val/test splits
+    (different `split_seed`s -- different communities land in train/val/test each
+    time), then at each drop fraction downsamples the train set two ways (whole
+    communities vs. the same number of random samples) and trains an MLP head,
+    scoring the fixed test set with the dataset's metric.
+
+    `singletons_are_com`: whether singleton communities count as droppable
+    communities (and contribute to n_eff) alongside non-singleton ones. False
+    (default) for datasets where singletons behave as outliers; True for
+    datasets where singletons carry MORE per-sample generalization value than
+    non-singleton clusters (empirically: lipophilicity, caco2_wang -- see
+    `run_singleton_power_experiment`).
+
+    `n_repeats` is spread evenly across the `n_splits` splits (n_repeats must be
+    divisible by n_splits), so the reported mean/std reflect both split-to-split
+    variance (different communities held out) and repeat-to-repeat variance
+    (downsample + MLP-training randomness within a fixed split) instead of just
+    the latter. Writes JSON and returns the results dict.
     """
     from rich import print
+
+    if n_repeats % n_splits != 0:
+        raise ValueError(f"n_repeats ({n_repeats}) must be divisible by n_splits ({n_splits})")
+    repeats_per_split = n_repeats // n_splits
+    split_seeds = [split_seed + 10 * i for i in range(n_splits)]
 
     drop_fractions = drop_fractions if drop_fractions is not None else list(DEFAULT_DROP_FRACTIONS)
     cfg = DATASETS[name]
@@ -196,22 +243,27 @@ def run_starvation_experiment(
     print(f"  {len(data):,} samples")
     embs = compute_embeddings(name, data, cfg, cache)
 
-    print("Building community-based train/val/test split...")
-    split = build_community_split(data, threshold, gamma, cfg, seed=split_seed)
-    communities = split["communities"]
-    train_idx, val_idx, test_idx = split["train_idx"], split["val_idx"], split["test_idx"]
-    print(f"  train={len(train_idx)}  val={len(val_idx)}  test={len(test_idx)}")
+    print(f"Building {n_splits} community-based train/val/test splits (seeds {split_seeds})...")
+    splits = []
+    for s_seed in split_seeds:
+        split = build_community_split(data, threshold, gamma, cfg, seed=s_seed, objective=objective)
+        splits.append(split)
+        print(f"  seed={s_seed}: train={len(split['train_idx'])}  val={len(split['val_idx'])}  test={len(split['test_idx'])}")
 
     results: dict = {
         "dataset": name,
-        "n_train": len(train_idx),
-        "n_val": len(val_idx),
-        "n_test": len(test_idx),
+        "n_train": int(np.mean([len(s["train_idx"]) for s in splits])),
+        "n_val": int(np.mean([len(s["val_idx"]) for s in splits])),
+        "n_test": int(np.mean([len(s["test_idx"]) for s in splits])),
         "drop_fractions": drop_fractions,
         "n_repeats": n_repeats,
+        "n_splits": n_splits,
+        "repeats_per_split": repeats_per_split,
+        "split_seeds": split_seeds,
         "gamma": gamma,
         "threshold": threshold,
         "metric": cfg.metric,
+        "singletons_are_com": singletons_are_com,
         "by_drop_fraction": {},
     }
 
@@ -219,19 +271,24 @@ def run_starvation_experiment(
         print(f"\n[green]-- drop_frac={drop_frac:.0%} --[/]")
         community_scores, random_scores, n_dropped_list = [], [], []
         n_eff_community_list, n_eff_random_list = [], []
-        for seed in range(n_repeats):
-            r = run_starvation_repeat(
-                embs, labels, cfg.metric, communities,
-                train_idx, val_idx, test_idx, drop_frac, seed,
-            )
-            community_scores.append(r["community_score"])
-            random_scores.append(r["random_score"])
-            n_dropped_list.append(r["n_dropped"])
-            n_eff_community_list.append(r["n_eff_community"])
-            n_eff_random_list.append(r["n_eff_random"])
-            print(f"  seed {seed}: dropped={r['n_dropped']}  "
-                  f"community={r['community_score']:.4f} (n_eff={r['n_eff_community']})  "
-                  f"random={r['random_score']:.4f} (n_eff={r['n_eff_random']})")
+        for split_idx, split in enumerate(splits):
+            communities = split["communities"]
+            train_idx, val_idx, test_idx = split["train_idx"], split["val_idx"], split["test_idx"]
+            for local_seed in range(repeats_per_split):
+                seed = split_idx * repeats_per_split + local_seed
+                r = run_starvation_repeat(
+                    embs, labels, cfg.metric, communities,
+                    train_idx, val_idx, test_idx, drop_frac, seed,
+                    singletons_are_com=singletons_are_com,
+                )
+                community_scores.append(r["community_score"])
+                random_scores.append(r["random_score"])
+                n_dropped_list.append(r["n_dropped"])
+                n_eff_community_list.append(r["n_eff_community"])
+                n_eff_random_list.append(r["n_eff_random"])
+                print(f"  split={split_idx} (seed={split_seeds[split_idx]}) repeat={local_seed}: dropped={r['n_dropped']}  "
+                      f"community={r['community_score']:.4f} (n_eff={r['n_eff_community']})  "
+                      f"random={r['random_score']:.4f} (n_eff={r['n_eff_random']})")
 
         community_arr = np.array(community_scores)
         random_arr = np.array(random_scores)
@@ -252,4 +309,126 @@ def run_starvation_experiment(
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\n[bold]Results saved to {out_path}[/]")
+    return results
+
+
+def run_singleton_power_experiment(
+    name: str,
+    threshold: float,
+    gamma: float,
+    out_path: str | Path,
+    *,
+    split_seed: int = 7,
+    n_splits: int = DEFAULT_N_SPLITS,
+    n_repeats: int = DEFAULT_N_REPEATS,
+    objective: LeidenObjective = LeidenObjective.CPM,
+) -> dict:
+    """Singleton-vs-non-singleton per-sample information content, for one dataset.
+
+    This trains an MLP on ONLY the singleton subset of train, and separately
+    on a size-matched random subsample of the non-singleton subset (matched
+    so the comparison isolates per-sample information content rather than
+    just favoring whichever subset has more data), evaluates both on the same
+    fixed test set, across `n_splits` independent community splits x
+    (n_repeats // n_splits) repeats each -- same structure as
+    `run_starvation_experiment`. Reports mean/std and a paired t-test.
+    Writes JSON, returns the results dict.
+    """
+    from collections import Counter
+
+    from rich import print
+    from scipy import stats
+
+    if n_repeats % n_splits != 0:
+        raise ValueError(f"n_repeats ({n_repeats}) must be divisible by n_splits ({n_splits})")
+    repeats_per_split = n_repeats // n_splits
+    split_seeds = [split_seed + 10 * i for i in range(n_splits)]
+
+    cfg = DATASETS[name]
+    cache = CacheStore()
+
+    print(f"[bold][orange2]=== Singleton Power: {name} ===[/][/]")
+    data, labels = load_dataset(name, cache)
+    print(f"  {len(data):,} samples")
+    embs = compute_embeddings(name, data, cfg, cache)
+
+    print(f"Building {n_splits} community-based train/val/test splits (seeds {split_seeds})...")
+    single_scores, nonsingle_scores = [], []
+    single_ns, nonsingle_ns_matched = [], []
+    for split_idx, s_seed in enumerate(split_seeds):
+        split = build_community_split(data, threshold, gamma, cfg, seed=s_seed, objective=objective)
+        communities = split["communities"]
+        train_idx, val_idx, test_idx = split["train_idx"], split["val_idx"], split["test_idx"]
+        sizes = Counter(communities[i] for i in train_idx)
+
+        singleton_idx_full = [i for i in train_idx if sizes[communities[i]] == 1]
+        nonsingleton_idx_full = [i for i in train_idx if sizes[communities[i]] >= 2]
+        # Match both subsets down to the smaller of the two -- singletons
+        # outnumber non-singletons for some datasets.
+        n_match = min(len(singleton_idx_full), len(nonsingleton_idx_full))
+        single_ns.append(n_match)
+        print(f"  seed={s_seed}: train={len(train_idx)}  singleton={len(singleton_idx_full)}  "
+              f"non-singleton={len(nonsingleton_idx_full)}  matched_to={n_match}")
+
+        for local_seed in range(repeats_per_split):
+            seed = split_idx * repeats_per_split + local_seed
+            rng = np.random.default_rng(seed)
+            singleton_idx = list(rng.choice(singleton_idx_full, size=n_match, replace=False)) \
+                if len(singleton_idx_full) > n_match else singleton_idx_full
+            nonsingleton_idx_matched = list(rng.choice(nonsingleton_idx_full, size=n_match, replace=False)) \
+                if len(nonsingleton_idx_full) > n_match else nonsingleton_idx_full
+            nonsingle_ns_matched.append(len(nonsingleton_idx_matched))
+
+            r_single = train_eval_mlp(embs, labels, train_idx=singleton_idx, val_idx=val_idx,
+                                       test_idx=test_idx, metric=cfg.metric, seed=seed)
+            r_nonsingle = train_eval_mlp(embs, labels, train_idx=nonsingleton_idx_matched, val_idx=val_idx,
+                                          test_idx=test_idx, metric=cfg.metric, seed=seed)
+            single_scores.append(r_single["score"])
+            nonsingle_scores.append(r_nonsingle["score"])
+            print(f"  split={split_idx} (seed={s_seed}) repeat={local_seed}: "
+                  f"singleton={r_single['score']:.4f}  non-singleton(matched)={r_nonsingle['score']:.4f}")
+
+    single_arr = np.array(single_scores)
+    nonsingle_arr = np.array(nonsingle_scores)
+    diffs = single_arr - nonsingle_arr
+    n = len(single_arr)
+    if diffs.std() > 0:
+        t_stat, p_value = stats.ttest_rel(single_arr, nonsingle_arr)
+    else:
+        t_stat, p_value = float("nan"), float("nan")
+
+    results: dict = {
+        "dataset": name,
+        "threshold": threshold,
+        "gamma": gamma,
+        "objective": str(objective),
+        "metric": cfg.metric,
+        "n_splits": n_splits,
+        "repeats_per_split": repeats_per_split,
+        "n_repeats": n_repeats,
+        "split_seeds": split_seeds,
+        "n_singleton_train_mean": float(np.mean(single_ns)),
+        "n_nonsingleton_train_matched_mean": float(np.mean(nonsingle_ns_matched)),
+        "singleton_score_mean": float(single_arr.mean()),
+        "singleton_score_std": float(single_arr.std(ddof=1)),
+        "singleton_score_sem": float(single_arr.std(ddof=1) / np.sqrt(n)),
+        "nonsingleton_score_mean": float(nonsingle_arr.mean()),
+        "nonsingleton_score_std": float(nonsingle_arr.std(ddof=1)),
+        "nonsingleton_score_sem": float(nonsingle_arr.std(ddof=1) / np.sqrt(n)),
+        "diff_mean": float(diffs.mean()),
+        "diff_std": float(diffs.std(ddof=1)),
+        "t_stat": float(t_stat),
+        "p_value": float(p_value),
+        "significant": bool(p_value == p_value and p_value < 0.05),  # p_value != nan
+    }
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n  singleton:            {results['singleton_score_mean']:.4f} +- {results['singleton_score_std']:.4f}")
+    print(f"  non-singleton(matched): {results['nonsingleton_score_mean']:.4f} +- {results['nonsingleton_score_std']:.4f}")
+    print(f"  diff={results['diff_mean']:+.4f}  t={results['t_stat']:+.2f}  p={results['p_value']:.4f}"
+          f"  {'***SIGNIFICANT***' if results['significant'] else ''}")
+    print(f"[bold]Results saved to {out_path}[/]")
     return results

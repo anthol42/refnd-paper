@@ -10,15 +10,18 @@ Usage:
 
 from pathlib import Path
 
+from refnd.core import LeidenObjective
 from src.data_starvation import run_starvation_experiment
 
-THRESHOLD = 0.3                 # distance = 1 - similarity (0.7 identity/Tanimoto)
-GAMMA = 3.3668e-07   # null-model P(random pair within threshold), @thr 0.3
+
+THRESHOLD = 0.7
+GAMMA = 1.0
 OUT_PATH = Path("results/data_starvation/ames.json")
 
 
 def main() -> None:
-    run_starvation_experiment("ames", THRESHOLD, GAMMA, OUT_PATH, split_seed=7)
+    run_starvation_experiment("ames", THRESHOLD, GAMMA, OUT_PATH, split_seed=7,
+                               objective=LeidenObjective.Modularity)
 
 
 if __name__ == "__main__":

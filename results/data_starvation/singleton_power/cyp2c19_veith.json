@@ -1,0 +1,30 @@
+{
+  "dataset": "cyp2c19_veith",
+  "threshold": 0.5,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "mcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 3256.2,
+  "n_nonsingleton_train_matched_mean": 3256.2,
+  "singleton_score_mean": 0.3953909959585527,
+  "singleton_score_std": 0.06208745688178585,
+  "singleton_score_sem": 0.011335566890761158,
+  "nonsingleton_score_mean": 0.42266434199479,
+  "nonsingleton_score_std": 0.04219092656791558,
+  "nonsingleton_score_sem": 0.007702974067763794,
+  "diff_mean": -0.027273346036237205,
+  "diff_std": 0.07337822390812479,
+  "t_stat": -2.0357847392702015,
+  "p_value": 0.05099868852485113,
+  "significant": false
+}

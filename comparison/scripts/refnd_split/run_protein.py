@@ -7,11 +7,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from split_utils import (save_split, save_refnd_sizes, save_community_stats,
-                         split_train_val, track_split, SEEDS, PROTEIN_DATASETS)
+                         split_train_val, track_split, load_protein_sequences,
+                         REPO_ROOT, SEEDS, PROTEIN_DATASETS)
 
-# refnd proximity_threshold is a DISTANCE (= 1 - identity). 40% identity target
-# (mid of Hestia's 0.3-0.5 protein range) -> 1 - 0.40 = 0.60.
-THRESHOLD = 0.60
+# refnd proximity_threshold is a DISTANCE (= 1 - identity). 50% identity target
+# -> 1 - 0.50 = 0.50 (matches Hestia's THRESHOLD below).
+THRESHOLD = 0.50
 TEST_RATIO = 0.20
 VAL_RATIO = 0.10  # fraction of (train+val) kept as val
 NULL_SAMPLES = 1_000_000  # global alignment kernel is expensive; 1M for the GPD tail fit
@@ -23,9 +24,13 @@ def build_graph_and_communities(sequences: list):
     from refnd.core import (HNSWState, INWeightType, LeidenObjective,
                             find_communities, find_components)
     from null_model import null_model, NullCfg
+    from src.cache import CacheStore
+    from src.datasets import load_dataset
+
+    atlas_sequences, _ = load_dataset("peptide_atlas", CacheStore(root=str(REPO_ROOT / ".cache")))
 
     cfg = NullCfg(modality=KernelVariant.AlignmentGlobal, proximity_threshold=THRESHOLD)
-    gamma = null_model(sequences, cfg, n_samples=NULL_SAMPLES)
+    gamma = null_model(atlas_sequences, cfg, n_samples=NULL_SAMPLES)
 
     hnsw = HNSWState(KernelVariant.AlignmentGlobal, sequences, proximity_threshold=THRESHOLD)
     hnsw.build(progress=True)
@@ -42,11 +47,9 @@ def main():
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()
 
-    import pandas as pd
     from refnd.core import partition
 
-    df = pd.read_parquet(Path(args.splits_dir).parent / "data" / "protein" / f"{args.dataset}.parquet")
-    sequences = df["sequence"].tolist()
+    sequences = load_protein_sequences(args.dataset)
     print(f"[{args.dataset}] {len(sequences)} sequences")
 
     sizes = {}

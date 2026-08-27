@@ -1,52 +1,52 @@
 {
   "method": "refnd",
   "dataset": "dbaasp_amp",
-  "n_nodes": 10664,
-  "n_communities": 845,
-  "largest_community_frac": 0.246,
-  "singleton_communities": 569,
+  "n_nodes": 9796,
+  "n_communities": 1252,
+  "largest_community_frac": 0.69,
+  "singleton_communities": 957,
   "per_seed": {
     "1": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "2": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "3": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "4": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "5": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "6": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "7": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "8": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "9": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     },
     "10": {
-      "train_communities": 676,
-      "test_communities": 169
+      "train_communities": 1001,
+      "test_communities": 251
     }
   },
-  "n_components": 495,
-  "largest_component_frac": 0.9292
+  "n_components": 1241,
+  "largest_component_frac": 0.7656
 }

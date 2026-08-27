@@ -2,51 +2,51 @@
   "method": "refnd",
   "dataset": "enzyme_topt",
   "n_nodes": 1886,
-  "n_communities": 1365,
-  "largest_community_frac": 0.0122,
-  "singleton_communities": 1097,
+  "n_communities": 1547,
+  "largest_community_frac": 0.0085,
+  "singleton_communities": 1356,
   "per_seed": {
     "1": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "2": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "3": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "4": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "5": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "6": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "7": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "8": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "9": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     },
     "10": {
-      "train_communities": 1092,
-      "test_communities": 273
+      "train_communities": 1237,
+      "test_communities": 310
     }
   },
-  "n_components": 1365,
-  "largest_component_frac": 0.0122
+  "n_components": 1547,
+  "largest_component_frac": 0.0085
 }
