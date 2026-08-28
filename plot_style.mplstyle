@@ -1,17 +1,22 @@
 # ---- Fonts -------------------------------------------------------------
-# No LaTeX install required: pairs a plain serif body font with matplotlib's
+# No LaTeX install required: pairs a Times-metric-compatible serif body font
+# (Nimbus Roman, matching the LaTeX template's Times) with matplotlib's
 # built-in "cm" (Computer Modern) math font, so equations match the paper
 # body text without the fragility/slowness of text.usetex.
-font.family        : serif
+font.family        : Nimbus Roman
 mathtext.fontset   : cm
-font.size          : 9
+font.size          : 10
 
 axes.titlesize     : 10
-axes.labelsize     : 9
+axes.labelsize     : 10
 xtick.labelsize    : 8
 ytick.labelsize    : 8
 legend.fontsize    : 8
 figure.titlesize   : 11
+
+# ---- Figure size -----------------------------------------------------------
+# Matches the LaTeX template's default figure width/height.
+figure.figsize     : 2.472, 2
 
 # ---- Colors --------------------------------------------------------------
 # Okabe–Ito palette: colorblind-safe and still distinguishable in grayscale.
