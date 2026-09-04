@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="178pt"
+   height="178pt"
+   viewBox="0 0 1080 1080"
+   version="1.1"
+   id="svg17"
+   sodipodi:docname="latent_variable_process.svg"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs17">
+    <defs
+       id="defs5">
+      <radialGradient
+         id="obsGrad"
+         cx="526.92"
+         cy="622.56"
+         r="65.4"
+         fx="526.92"
+         fy="622.56"
+         gradientUnits="userSpaceOnUse">
+        <stop
+           offset="0"
+           stop-color="#eaf5fc"
+           id="stop1"
+           style="stop-color:#bbdcfa;stop-opacity:1;" />
+        <stop
+           offset="55%"
+           stop-color="#7fb8e0"
+           id="stop2" />
+        <stop
+           offset="100%"
+           stop-color="#0072B2"
+           id="stop3" />
+      </radialGradient>
+      <linearGradient
+         id="plateGrad"
+         x1="250.39184"
+         y1="245.42897"
+         x2="250.39184"
+         y2="831.11851"
+         gradientTransform="scale(0.99404199,1.0059937)"
+         gradientUnits="userSpaceOnUse">
+        <stop
+           offset="0%"
+           stop-color="#fdfdfd"
+           id="stop4" />
+        <stop
+           offset="100%"
+           stop-color="#f3f4f6"
+           id="stop5" />
+      </linearGradient>
+    </defs>
+    <defs
+       id="defs6">
+      <marker
+         id="arrowHead"
+         viewBox="0 0 10 10"
+         refX="8"
+         refY="5"
+         markerWidth="7"
+         markerHeight="7"
+         orient="auto-start-reverse">
+        <path
+           d="M 0 0 L 10 5 L 0 10 z"
+           fill="#333333"
+           id="path5" />
+      </marker>
+      <marker
+         id="arrowInfer"
+         viewBox="0 0 10 10"
+         refX="8"
+         refY="5"
+         markerWidth="7"
+         markerHeight="7"
+         orient="auto-start-reverse">
+        <path
+           d="M 0 0 L 10 5 L 0 10 z"
+           fill="#D55E00"
+           id="path6" />
+      </marker>
+    </defs>
+  </defs>
+  <sodipodi:namedview
+     id="namedview17"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="pt"
+     inkscape:zoom="3.0528242"
+     inkscape:cx="123.16464"
+     inkscape:cy="158.86929"
+     inkscape:window-width="1512"
+     inkscape:window-height="921"
+     inkscape:window-x="0"
+     inkscape:window-y="1141"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg17" />
+  <circle
+     cx="572.57397"
+     cy="183.00589"
+     r="50"
+     fill="#000000"
+     fill-opacity="0.14"
+     id="circle6" />
+  <circle
+     cx="569.57397"
+     cy="179.00589"
+     r="50"
+     fill="#f3f9fd"
+     stroke="#0072b2"
+     stroke-width="3.4"
+     id="circle7" />
+  <text
+     x="569.57397"
+     y="193.28589"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="42px"
+     font-weight="bold"
+     fill="#0a3a54"
+     text-anchor="middle"
+     font-style="italic"
+     id="text7"
+     style="font-style:italic;font-weight:bold;font-size:42px;font-family:Helvetica, Arial, sans-serif;text-anchor:middle;fill:#0a3a54"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:42.4719px;font-family:Sans;-inkscape-font-specification:'Sans, Bold Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan17">G</tspan></text>
+  <line
+     x1="569.57397"
+     y1="233.00589"
+     x2="569.57397"
+     y2="350.00589"
+     stroke="#333333"
+     stroke-width="3.2"
+     marker-end="url(#arrowHead)"
+     id="line7" />
+  <text
+     x="635.57397"
+     y="272.00589"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="19px"
+     font-style="italic"
+     fill="#555555"
+     text-anchor="start"
+     id="text8"
+     style="font-style:italic;font-size:19px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#555555"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.3371px;font-family:Sans;-inkscape-font-specification:'Sans, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan21">i.i.d.</tspan></text>
+  <rect
+     x="279.57394"
+     y="317.00589"
+     width="580"
+     height="587"
+     rx="22"
+     ry="22"
+     fill="url(#plateGrad)"
+     fill-opacity="0.6"
+     stroke="#8a8a8a"
+     stroke-width="2.2"
+     id="rect8"
+     style="fill:url(#plateGrad)" />
+  <text
+     x="843.57397"
+     y="890.00592"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="24px"
+     font-style="italic"
+     fill="#555555"
+     text-anchor="end"
+     id="text9"
+     style="font-style:italic;font-size:24px;font-family:Helvetica, Arial, sans-serif;text-anchor:end;fill:#555555"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.3371px;font-family:Sans;-inkscape-font-specification:'Sans, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan24">i = 1..N</tspan></text>
+  <circle
+     cx="572.57397"
+     cy="408.00589"
+     r="48"
+     fill="#000000"
+     fill-opacity="0.14"
+     id="circle9" />
+  <circle
+     cx="569.57397"
+     cy="404.00589"
+     r="48"
+     fill="#f3f9fd"
+     stroke="#0072b2"
+     stroke-width="3.2"
+     id="circle10" />
+  <text
+     x="569.57397"
+     y="416.9259"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="38px"
+     font-weight="bold"
+     fill="#0a3a54"
+     text-anchor="middle"
+     font-style="italic"
+     id="text10"
+     style="font-style:italic;font-weight:bold;font-size:38px;font-family:Helvetica, Arial, sans-serif;text-anchor:middle;fill:#0a3a54"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:42.4719px;font-family:Sans;-inkscape-font-specification:'Sans, Bold Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan18">g</tspan></text>
+  <text
+     x="582.57397"
+     y="420.00589"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="19px"
+     font-weight="bold"
+     font-style="italic"
+     fill="#0a3a54"
+     text-anchor="start"
+     id="text11"
+     style="font-style:italic;font-weight:bold;font-size:19px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#0a3a54"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:21.236px;font-family:Sans;-inkscape-font-specification:'Sans, Bold Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan20">i</tspan></text>
+  <line
+     x1="569.57397"
+     y1="456.00589"
+     x2="569.57397"
+     y2="661.00592"
+     stroke="#333333"
+     stroke-width="3.2"
+     marker-end="url(#arrowHead)"
+     id="line11" />
+  <rect
+     x="419.57394"
+     y="499.00589"
+     width="300"
+     height="340"
+     rx="18"
+     ry="18"
+     fill="#ffffff"
+     fill-opacity="0.7"
+     stroke="#8a8a8a"
+     stroke-width="2"
+     id="rect11" />
+  <text
+     x="705.57397"
+     y="827.00592"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="21px"
+     font-style="italic"
+     fill="#555555"
+     text-anchor="end"
+     id="text12"
+     style="font-style:italic;font-size:21px;font-family:Helvetica, Arial, sans-serif;text-anchor:end;fill:#555555"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:30.3371px;font-family:Sans;-inkscape-font-specification:'Sans, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan23">j = 1..M</tspan></text>
+  <text
+     x="708.58337"
+     y="835.54474"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="21px"
+     font-style="italic"
+     fill="#555555"
+     text-anchor="end"
+     id="text12-2"
+     style="font-style:italic;font-size:21px;font-family:Helvetica, Arial, sans-serif;text-anchor:end;fill:#555555"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.236px;font-family:Sans;-inkscape-font-specification:'Sans, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan23-3">i</tspan></text>
+  <circle
+     cx="572.57397"
+     cy="713.00592"
+     r="42"
+     fill="#000000"
+     fill-opacity="0.14"
+     id="circle12" />
+  <circle
+     cx="569.57397"
+     cy="709.00592"
+     r="42"
+     fill="url(#obsGrad)"
+     stroke="#00445e"
+     stroke-width="3.2"
+     id="circle13"
+     style="fill:#0072b2;fill-opacity:1" />
+  <text
+     x="563.59778"
+     y="715.0166"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="34px"
+     font-weight="bold"
+     fill="#ffffff"
+     text-anchor="middle"
+     font-style="italic"
+     id="text13"
+     style="font-style:italic;font-weight:bold;font-size:34px;font-family:Helvetica, Arial, sans-serif;text-anchor:middle;fill:#ffffff"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:36.4045px;font-family:Sans;-inkscape-font-specification:'Sans, Bold Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan19">s</tspan></text>
+  <text
+     x="574.59778"
+     y="717.4566"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="16px"
+     font-weight="bold"
+     font-style="italic"
+     fill="#ffffff"
+     text-anchor="start"
+     id="text14"
+     style="font-style:italic;font-weight:bold;font-size:16px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#ffffff"><tspan
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:21.236px;font-family:Sans;-inkscape-font-specification:'Sans, Bold Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan22">ij</tspan></text>
+  <path
+     d="m 617.57395,703.00589 c 312,-34 312,-229 6,-289"
+     fill="none"
+     stroke="#d55e00"
+     stroke-width="2.6"
+     stroke-dasharray="2, 6"
+     stroke-linecap="round"
+     marker-end="url(#arrowInfer)"
+     id="path14" />
+  <text
+     x="511.86624"
+     y="-912.54565"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="24px"
+     font-weight="bold"
+     fill="#d55e00"
+     text-anchor="start"
+     transform="rotate(90)"
+     id="text15"
+     style="font-weight:bold;font-size:24px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#d55e00"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:36.4045px;font-family:Sans;-inkscape-font-specification:'Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan25">Infer</tspan></text>
+  <text
+     x="16.058706"
+     y="420.4519"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="30px"
+     font-weight="bold"
+     fill="#000000"
+     text-anchor="start"
+     id="text16"
+     style="font-weight:bold;font-size:30px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#000000"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:42.4719px;font-family:Sans;-inkscape-font-specification:'Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan26">Unknown</tspan></text>
+  <text
+     x="11.081011"
+     y="724.89587"
+     font-family="Helvetica, Arial, sans-serif"
+     font-size="30px"
+     font-weight="bold"
+     fill="#000000"
+     text-anchor="start"
+     id="text17"
+     style="font-weight:bold;font-size:30px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#000000"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:42.4719px;font-family:Sans;-inkscape-font-specification:'Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
+       id="tspan27">Observed</tspan></text>
+  <line
+     x1="251.57396"
+     y1="709.00592"
+     x2="411.57394"
+     y2="709.00592"
+     stroke="#bbbbbb"
+     stroke-width="1.6"
+     stroke-dasharray="2, 4"
+     id="line17" />
+  <line
+     x1="247.68158"
+     y1="405.76196"
+     x2="500.20981"
+     y2="405.76196"
+     stroke="#bbbbbb"
+     stroke-width="1.6"
+     stroke-dasharray="2, 4"
+     id="line17-9" />
+</svg>

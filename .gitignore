@@ -231,3 +231,5 @@ threshold/__pycache__/
 *.pdf
 
 data/
+.DS_Store
+
