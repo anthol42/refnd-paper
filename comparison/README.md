@@ -65,9 +65,9 @@ own venv to avoid dependency conflicts (see the per-dir `submit.sh`). Splitting
 and training are decoupled: splits write `splits/{method}/{dataset}/{seed}.json`;
 training reads those and writes `results/`.
 
-**Thresholds** (as run): protein/peptide 40 % identity, molecules 40 % Tanimoto,
+**Thresholds** (as run): protein/peptide 50 % identity, molecules 40 % Tanimoto,
 DNA 60 % identity. refnd's `proximity_threshold` is a *distance* (= 1 − identity),
-so those map to refnd 0.60 / 0.60 / 0.40 respectively.
+so those map to refnd 0.50 / 0.60 / 0.40 respectively.
 
 **Molecule null model** uses the random-atom-molecule null
 (`refnd_split/null_model.py:random_molecule_null_gamma`, ported from the paper's

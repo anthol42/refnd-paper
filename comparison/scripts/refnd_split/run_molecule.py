@@ -48,9 +48,6 @@ def build_graph_and_communities(valid_fps: list, null_cache_path):
     from null_model import random_molecule_null_gamma, NullCfg
 
     cfg = NullCfg(modality=KernelVariant.TanimotoBit, proximity_threshold=THRESHOLD)
-    # Random-atom-molecule null (refnd-paper threshold/molecules.py:find_gamma_function):
-    # gamma = p0(THRESHOLD) from a synthetic random-molecule pool, dataset-independent
-    # and cached, so every molecule dataset shares the same universal null baseline.
     gamma = random_molecule_null_gamma(cfg, n_molecules=NULL_N_MOLECULES,
                                        n_pairs=NULL_N_PAIRS, cache_path=null_cache_path)
 

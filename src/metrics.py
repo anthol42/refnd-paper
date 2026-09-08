@@ -214,6 +214,7 @@ def null_model(
     use_gpd_tail: bool = True,
     gpd_tail_quantile: float = 0.01,
     gpd_min_tail_samples: int = 1000,
+    shuffle: bool = True,
 ) -> float:
     """Estimate P(distance <= threshold) under a permutation null model.
 
@@ -229,8 +230,14 @@ def null_model(
     from the observed distribution instead of relying on the raw count. This
     falls back to the empirical count (or a Jeffreys pseudocount if there are
     zero hits and the GPD fit is infeasible) if the tail fit can't be done.
+
+    shuffle: forwarded to `null_model_scores` -- MUST be False for BELKA (or
+    any combinatorial-library fingerprint dataset), since shuffling bit
+    positions destroys chemical structure and produces a degenerate null far
+    more dissimilar than real unrelated library members (see
+    `null_model_scores`'s docstring). Defaults to True for sequence datasets.
     """
-    scores = null_model_scores(data, cfg, n_samples=n_samples, seed=seed)
+    scores = null_model_scores(data, cfg, n_samples=n_samples, seed=seed, shuffle=shuffle)
 
     if use_gpd_tail:
         gpd_p = _gpd_tail_estimate(

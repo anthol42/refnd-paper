@@ -15,7 +15,7 @@ from split_utils import (save_split, save_refnd_sizes, save_community_stats,
 THRESHOLD = 0.50
 TEST_RATIO = 0.20
 VAL_RATIO = 0.10  # fraction of (train+val) kept as val
-NULL_SAMPLES = 1_000_000  # global alignment kernel is expensive; 1M for the GPD tail fit
+NULL_SAMPLES = 10_000_000  # 10M for the GPD tail fit
 
 
 def build_graph_and_communities(sequences: list):
