@@ -12,8 +12,8 @@ from pathlib import Path
 from refnd import LeidenObjective
 from src.data_starvation import run_starvation_experiment
 
-THRESHOLD = 0.3                 # distance = 1 - similarity (0.7 identity/Tanimoto)
-GAMMA = 1  # null-model P(random pair within threshold)
+THRESHOLD = 0.8
+GAMMA = 1.0   # Modularity resolution parameter, not a null-model probability
 OUT_PATH = Path("results/data_starvation/enzyme_topt.json")
 
 

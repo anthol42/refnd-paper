@@ -31,13 +31,14 @@ SUMMARY_PATH = OUT_DIR / "summary.json"
 # (threshold, gamma, objective) per dataset -- matches each dataset's own
 # data_starvation/<name>.py script.
 CONFIGS: dict[str, dict] = {
-    "dbaasp":           dict(threshold=0.3, gamma=2.106840413550154e-11, objective=LeidenObjective.CPM),
+    "dbaasp":           dict(threshold=0.3, gamma=1.0, objective=LeidenObjective.Modularity),
     "lipophilicity":    dict(threshold=0.4, gamma=1.0, objective=LeidenObjective.Modularity),
     "caco2_wang":       dict(threshold=0.6, gamma=1.0, objective=LeidenObjective.Modularity),
     "cyp2c19_veith":    dict(threshold=0.5, gamma=1.0, objective=LeidenObjective.Modularity),
     "ames":             dict(threshold=0.7, gamma=1.0, objective=LeidenObjective.Modularity),
     "pgp_broccatelli":  dict(threshold=0.6, gamma=1.0, objective=LeidenObjective.Modularity),
     "sr_are":           dict(threshold=0.4, gamma=1.0, objective=LeidenObjective.Modularity),
+    "enzyme_topt":      dict(threshold=0.8, gamma=1.0, objective=LeidenObjective.Modularity),
 }
 
 

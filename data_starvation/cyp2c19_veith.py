@@ -1,4 +1,4 @@
-"""Data-starvation experiment on cyp2c19_veith (MCC, CYP2C19 inhibition from molecule).
+"""Data-starvation experiment on cyp2c19_veith (AUROC, CYP2C19 inhibition from molecule).
 
 Same protocol as dbaasp.py: community-based train/val/test split, then downsample
 train two ways (whole communities vs. equal-count random) across drop fractions

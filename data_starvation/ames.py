@@ -1,4 +1,4 @@
-"""Data-starvation experiment on ames (MCC, Ames mutagenicity from molecule).
+"""Data-starvation experiment on ames (AUROC, Ames mutagenicity from molecule).
 
 Same protocol as dbaasp.py: community-based train/val/test split, then downsample
 train two ways (whole communities vs. equal-count random) across drop fractions

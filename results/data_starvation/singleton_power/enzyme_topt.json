@@ -1,0 +1,30 @@
+{
+  "dataset": "enzyme_topt",
+  "threshold": 0.8,
+  "gamma": 1.0,
+  "objective": "LeidenObjective.Modularity",
+  "metric": "pcc",
+  "n_splits": 5,
+  "repeats_per_split": 6,
+  "n_repeats": 30,
+  "split_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "n_singleton_train_mean": 66.6,
+  "n_nonsingleton_train_matched_mean": 66.6,
+  "singleton_score_mean": 0.5732934519648551,
+  "singleton_score_std": 0.10324586632412883,
+  "singleton_score_sem": 0.018850029984962782,
+  "nonsingleton_score_mean": 0.6024720201889674,
+  "nonsingleton_score_std": 0.10805420964178164,
+  "nonsingleton_score_sem": 0.019727909351398672,
+  "diff_mean": -0.029178568224112193,
+  "diff_std": 0.11487677647152365,
+  "t_stat": -1.3912089547543458,
+  "p_value": 0.1747440672319382,
+  "significant": false
+}

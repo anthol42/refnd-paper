@@ -14,19 +14,28 @@ from pathlib import Path
 import numpy as np
 
 from refnd.core import HNSWState, INWeightType, LeidenObjective, find_communities, partition
+from refnd import KernelVariant
 
 from src.cache import CacheStore
-from src.datasets import DATASETS, load_dataset
+from src.datasets import DATASETS, SCALING_DATASET_KEY, belka_unique_smiles, load_dataset, prepare_hnsw_input
 
-SIZES       = [5_000, 25_000, 125_000, 625_000, 3_125_000]
+SIZES = {
+    "atlas": [5_000, 25_000, 125_000, 625_000, 3_125_000],
+    "belka": [25_000, 125_000, 625_000, 3_125_000, 15_625_000],
+}
 DEBUG_SIZES = [5_000, 25_000]
 SEED    = 42
 TMP_DIR = Path(".cache/scaling_tmp")
-RESULTS = Path("results/scaling_detailed_refnd.json")
+RESULTS_DIR = Path("results")
 
 
-def _subset_path(size: int) -> Path:
-    return TMP_DIR / f"peptide_atlas_{size}.fasta"
+def _results_path(dataset: str) -> Path:
+    suffix = "" if dataset == "atlas" else f"_{dataset}"
+    return RESULTS_DIR / f"scaling_detailed_refnd{suffix}.json"
+
+
+def _subset_path(dataset: str, size: int) -> Path:
+    return TMP_DIR / f"{dataset}_{size}.fasta"
 
 
 def _write_fasta(path: Path, sequences: list[str]) -> None:
@@ -35,22 +44,26 @@ def _write_fasta(path: Path, sequences: list[str]) -> None:
             f.write(f">seq_{i}\n{seq}\n")
 
 
-def _prepare_subsets(sizes: list[int]) -> None:
+def _prepare_subsets(dataset: str, sizes: list[int]) -> None:
     TMP_DIR.mkdir(parents=True, exist_ok=True)
-    needed = [s for s in sizes if not _subset_path(s).exists()]
+    needed = [s for s in sizes if not _subset_path(dataset, s).exists()]
     if not needed:
         return
-    print("Loading peptide_atlas dataset to generate missing subsets...")
-    data, _ = load_dataset("peptide_atlas", CacheStore())
-    print(f"  {len(data):,} sequences")
+    print(f"Loading {dataset} dataset to generate missing subsets...")
+    cache = CacheStore()
+    if dataset == "belka":
+        data = belka_unique_smiles(cache)
+    else:
+        data, _ = load_dataset("peptide_atlas", cache)
+    print(f"  {len(data):,} items")
     rng = np.random.default_rng(SEED)
     for size in needed:
         if size > len(data):
             print(f"  [skip] size={size:,}: only {len(data):,} samples available")
             continue
         idx = rng.choice(len(data), size=size, replace=False)
-        _write_fasta(_subset_path(size), [data[i] for i in idx])
-        print(f"  Cached subset of {size:,} → {_subset_path(size)}")
+        _write_fasta(_subset_path(dataset, size), [data[i] for i in idx])
+        print(f"  Cached subset of {size:,} → {_subset_path(dataset, size)}")
 
 
 def _read_fasta(path: Path) -> list[str]:
@@ -58,17 +71,19 @@ def _read_fasta(path: Path) -> list[str]:
             if line.strip() and not line.startswith(">")]
 
 
-def _time_one(size: int) -> dict | None:
-    path = _subset_path(size)
+def _time_one(dataset: str, size: int) -> dict | None:
+    path = _subset_path(dataset, size)
     if not path.exists():
         print(f"  [skip] size={size:,}: subset not available")
         return None
 
-    sequences = _read_fasta(path)
-    cfg = DATASETS["peptide_atlas"]
+    items = _read_fasta(path)
+    cfg  = DATASETS[SCALING_DATASET_KEY[dataset]]
+    data = prepare_hnsw_input(dataset, items)
 
     t0 = time.perf_counter()
-    hnsw = HNSWState(cfg.modality, sequences, proximity_threshold=cfg.proximity_threshold, **cfg.kernel_params)
+    hnsw = HNSWState(cfg.modality, data, proximity_threshold=cfg.proximity_threshold,
+                     cache_capacity=0 if cfg.modality == KernelVariant.TanimotoBit else 2_000_000, **cfg.kernel_params)
     hnsw.build(progress=True)
     t_build = time.perf_counter() - t0
 
@@ -106,20 +121,22 @@ def _time_one(size: int) -> dict | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Per-stage timing breakdown of the refnd pipeline")
+    parser.add_argument("--dataset", choices=list(SIZES), default="atlas")
     parser.add_argument("--debug", action="store_true",
                         help="Only use 5K/25K sizes for a fast smoke test")
     args = parser.parse_args()
-    sizes = DEBUG_SIZES if args.debug else SIZES
+    sizes = DEBUG_SIZES if args.debug else SIZES[args.dataset]
+    results_path = _results_path(args.dataset)
 
-    RESULTS.parent.mkdir(exist_ok=True)
-    _prepare_subsets(sizes)
+    results_path.parent.mkdir(exist_ok=True)
+    _prepare_subsets(args.dataset, sizes)
     records = []
     for size in sizes:
-        record = _time_one(size)
+        record = _time_one(args.dataset, size)
         if record is not None:
             records.append(record)
-            RESULTS.write_text(json.dumps(records, indent=2))
-    print(f"\nResults saved to {RESULTS}")
+            results_path.write_text(json.dumps(records, indent=2))
+    print(f"\nResults saved to {results_path}")
 
 
 if __name__ == "__main__":

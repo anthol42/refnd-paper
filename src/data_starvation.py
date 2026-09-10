@@ -1,7 +1,15 @@
 """Shared helpers for the data-starvation experiment.
 
-Builds a community-based train/val/test split for a dataset, then offers two
-ways to downsample the train set by a target fraction:
+The community structure is computed ONCE per dataset, from the EXACT
+(brute-force, O(n^2)) proximity graph rather than an HNSW approximation, and
+then reused across every split seed. Only `partition` is re-seeded, so the
+whole experiment is reproducible from the seeds alone: HNSW's build order and
+Leiden's refinement randomness no longer vary the communities from split to
+split. Exact edges are cached on disk (`CacheStore`), so the O(n^2) pass is
+paid once per (dataset, threshold).
+
+Given that fixed structure, the experiment offers two ways to downsample the
+train set by a target fraction:
 
 - community-based: drop whole communities at random until at least the
   target fraction of train samples has been removed (communities are
@@ -19,7 +27,14 @@ from typing import Any
 
 import numpy as np
 import torch
-from refnd.core import HNSWState, INWeightType, LeidenObjective, find_communities, partition
+from refnd.core import (
+    CsrGraph,
+    INWeightType,
+    LeidenObjective,
+    exact_edges,
+    find_communities,
+    partition,
+)
 
 from .cache import CacheStore
 from .datasets import DATASETS, DatasetConfig, load_dataset
@@ -31,36 +46,61 @@ DEFAULT_N_REPEATS = 30
 DEFAULT_N_SPLITS = 5
 
 
-def build_community_split(
+def build_exact_communities(
+    name: str,
     data: list[Any],
     prox_threshold: float,
     gamma: float,
     cfg: DatasetConfig,
+    cache: CacheStore,
     *,
-    ef_construction: int = 64,
-    ef_init: int = 2,
+    objective: LeidenObjective = LeidenObjective.CPM,
+) -> tuple[list[int], CsrGraph]:
+    """Compute the exact proximity graph and its communities, once.
+
+    Uses `exact_edges` (brute force) instead of an HNSW approximation so the
+    graph -- and therefore the community structure every split is drawn from
+    -- is a deterministic function of (data, threshold). The EdgeStore is
+    cached under `{name}_exact` (or `{name}_exact_thr{t}` when the threshold
+    differs from the dataset's registered default, as it does for most
+    data-starvation runs), so the O(n^2) pass happens only the first time.
+
+    Returns `(communities, graph)`; feed both to `split_from_communities`.
+    """
+    native = prox_threshold == cfg.proximity_threshold
+    key = f"{name}_exact" if native else f"{name}_exact_thr{prox_threshold}"
+    es = cache.get_edges(key)
+    if es is None:
+        es = exact_edges(
+            cfg.modality, data, proximity_threshold=prox_threshold,
+            progress=True, **cfg.kernel_params,
+        )
+        cache.store_edges(key, es)
+
+    graph = es.graph(inweight_type=INWeightType.SimilarityComplement)
+    communities = list(find_communities(graph, gamma=gamma, objective=objective))
+    return communities, graph
+
+
+def split_from_communities(
+    communities: list[int],
+    graph: CsrGraph,
+    *,
     test_ratio: float = 0.2,
     val_ratio: float = 0.15,
     seed: int = 42,
-    objective: LeidenObjective = LeidenObjective.CPM,
 ) -> dict:
-    """Build an HNSW graph, find communities, and split into train/val/test.
+    """Split a fixed community structure into train/val/test for one seed.
 
     val is carved out of the train side using the same community-based
     `partition`, mirroring the outer test split (see `split_and_violations`
-    in src/metrics.py).
+    in src/metrics.py). `communities` and `graph` come from
+    `build_exact_communities` and are shared across seeds -- only the
+    partition shuffling varies here, which is what makes a run reproducible.
 
     Returns a dict with keys: communities (list[int], one per full-dataset
     index), train_idx, val_idx, test_idx (lists of full-dataset indices).
     """
-    hnsw = HNSWState(
-        cfg.modality, data, proximity_threshold=prox_threshold,
-        ef_construction=ef_construction, ef_init=ef_init, **cfg.kernel_params,
-    )
-    hnsw.build(progress=True)
-    graph = hnsw.edges().graph(inweight_type=INWeightType.SimilarityComplement)
-    communities = find_communities(graph, gamma=gamma, objective=objective)
-
     train_full_idx, test_idx = partition(
         communities, graph, test_ratio=test_ratio, seed=seed, post_filtering=False,
     )
@@ -78,7 +118,7 @@ def build_community_split(
     val_idx = [train_full_idx[i] for i in val_local]
 
     return {
-        "communities": list(communities),
+        "communities": communities,
         "train_idx": train_idx,
         "val_idx": val_idx,
         "test_idx": test_idx,
@@ -99,8 +139,8 @@ def community_downsample(
     eligible to be dropped. Most datasets' singletons behave as outliers
     (see `run_singleton_power_experiment`), so by default (False) they're
     never touched -- only communities of size >=2 are eligible. For the few
-    datasets where singletons carry MORE per-sample generalization value than
-    non-singleton clusters (empirically, lipophilicity and caco2_wang),
+    datasets where singletons carry more per-sample generalization value than
+    non-singleton clusters (empirically, lipophilicity, caco2_wang, and sr_are),
     `singletons_are_com=True` makes them eligible like any other community.
     If the eligible communities can't reach target_drop on their own (only
     possible with singletons_are_com=False, if non-singleton mass runs out),
@@ -208,9 +248,10 @@ def run_starvation_experiment(
     """End-to-end data-starvation experiment for one registered dataset.
 
     Loads the dataset + embeddings through `src/` (download + cache, same path as
-    dbaasp), builds `n_splits` independent community-based train/val/test splits
-    (different `split_seed`s -- different communities land in train/val/test each
-    time), then at each drop fraction downsamples the train set two ways (whole
+    dbaasp), computes the exact proximity graph and its communities ONCE, then
+    builds `n_splits` community-based train/val/test splits from that one fixed
+    structure (different `split_seed`s -- different communities land in
+    train/val/test each time, but the communities themselves never change), then at each drop fraction downsamples the train set two ways (whole
     communities vs. the same number of random samples) and trains an MLP head,
     scoring the fixed test set with the dataset's metric.
 
@@ -243,10 +284,17 @@ def run_starvation_experiment(
     print(f"  {len(data):,} samples")
     embs = compute_embeddings(name, data, cfg, cache)
 
+    print("Computing exact proximity graph + communities (shared across all splits)...")
+    communities_shared, graph_shared = build_exact_communities(
+        name, data, threshold, gamma, cfg, cache, objective=objective,
+    )
+    n_com = len(set(communities_shared))
+    print(f"  {n_com:,} communities over {len(communities_shared):,} samples")
+
     print(f"Building {n_splits} community-based train/val/test splits (seeds {split_seeds})...")
     splits = []
     for s_seed in split_seeds:
-        split = build_community_split(data, threshold, gamma, cfg, seed=s_seed, objective=objective)
+        split = split_from_communities(communities_shared, graph_shared, seed=s_seed)
         splits.append(split)
         print(f"  seed={s_seed}: train={len(split['train_idx'])}  val={len(split['val_idx'])}  test={len(split['test_idx'])}")
 
@@ -263,6 +311,9 @@ def run_starvation_experiment(
         "gamma": gamma,
         "threshold": threshold,
         "metric": cfg.metric,
+        "objective": str(objective),
+        "graph": "exact",
+        "n_communities": n_com,
         "singletons_are_com": singletons_are_com,
         "by_drop_fraction": {},
     }
@@ -352,11 +403,17 @@ def run_singleton_power_experiment(
     print(f"  {len(data):,} samples")
     embs = compute_embeddings(name, data, cfg, cache)
 
+    print("Computing exact proximity graph + communities (shared across all splits)...")
+    communities_shared, graph_shared = build_exact_communities(
+        name, data, threshold, gamma, cfg, cache, objective=objective,
+    )
+    print(f"  {len(set(communities_shared)):,} communities over {len(communities_shared):,} samples")
+
     print(f"Building {n_splits} community-based train/val/test splits (seeds {split_seeds})...")
     single_scores, nonsingle_scores = [], []
     single_ns, nonsingle_ns_matched = [], []
     for split_idx, s_seed in enumerate(split_seeds):
-        split = build_community_split(data, threshold, gamma, cfg, seed=s_seed, objective=objective)
+        split = split_from_communities(communities_shared, graph_shared, seed=s_seed)
         communities = split["communities"]
         train_idx, val_idx, test_idx = split["train_idx"], split["val_idx"], split["test_idx"]
         sizes = Counter(communities[i] for i in train_idx)

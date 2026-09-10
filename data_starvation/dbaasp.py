@@ -13,15 +13,17 @@ Usage:
 
 from pathlib import Path
 
+from refnd.core import LeidenObjective
 from src.data_starvation import run_starvation_experiment
 
 THRESHOLD = 0.3
-GAMMA = 2.106840413550154e-11  # Computed from null model at threshold 0.3
+GAMMA = 1.0   # Modularity resolution parameter, not a null-model probability
 OUT_PATH = Path("results/data_starvation/dbaasp.json")
 
 
 def main() -> None:
-    run_starvation_experiment("dbaasp", THRESHOLD, GAMMA, OUT_PATH, split_seed=7)
+    run_starvation_experiment("dbaasp", THRESHOLD, GAMMA, OUT_PATH, split_seed=7,
+                              objective=LeidenObjective.Modularity)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,9 @@
   "gamma": 1.0,
   "threshold": 0.5,
   "metric": "pcc",
+  "objective": "LeidenObjective.Modularity",
+  "graph": "exact",
+  "n_communities": 360,
   "singletons_are_com": true,
   "by_drop_fraction": {
     "0.0": {

@@ -1,4 +1,4 @@
-"""Data-starvation experiment on pgp_broccatelli (MCC, P-gp inhibition from molecule).
+"""Data-starvation experiment on pgp_broccatelli (AUROC, P-gp inhibition from molecule).
 
 Same protocol as dbaasp.py: community-based train/val/test split, then downsample
 train two ways (whole communities vs. equal-count random) across drop fractions
