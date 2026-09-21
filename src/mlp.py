@@ -152,10 +152,13 @@ def train_eval_mlp(
         preds = test_out.squeeze(-1).numpy()
         score, _ = pearsonr(preds, y_te)
         score = float(score)
+        r2 = float(1.0 - np.mean((preds - y_te) ** 2) / np.var(y_te))
         per_label_scores = None
 
     rprint(f"[dim]    MLP done in {time.perf_counter() - t0:.1f}s — {metric}={score:.4f}[/]")
     result = {"metric": metric, "score": score}
+    if metric == "pcc":
+        result["r2"] = r2
     if per_label_scores is not None:
         result["per_label_score"] = per_label_scores
     return result
