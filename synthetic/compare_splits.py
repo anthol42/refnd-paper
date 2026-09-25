@@ -8,8 +8,8 @@ it is unseen -- each split method is scored on:
   test:       MLP score on the annotated test split
   production: the SAME trained model, scored on the production dataset
 
-Each method also carves its validation set out of train with its own logic, so
-early stopping never sees near-duplicates of train that the test split excluded.
+The validation set (early stopping) is a random 10% of train, as in the
+real-data benchmark (comparison/scripts); DataSAIL re-runs its own split.
 
 Datasets have a fixed size and family count (SyntheticConfig), and labels carry
 no family effect: label = signal(sequence) + noise. Each of the N_REPEATS repeats draws a FRESH
@@ -46,7 +46,6 @@ from refnd.core import (HNSWState, INWeightType, LeidenObjective, find_communiti
 
 from src.cache import CacheStore
 from src.datasets import DATASETS, load_dataset
-from src.embeddings import _embed_esmc
 from src.metrics import null_model
 from src.mlp import train_eval_mlp
 from synthetic.dataset import SyntheticConfig, build_dataset
@@ -63,8 +62,35 @@ DATASAIL_SIF = None                    # else $DATASAIL_SIF or $REFND_EXP_BASE/d
 
 RESULTS_PATH = Path(__file__).parent.parent / "results" / "synthetic" / f"compare_splits_tau{TAU:g}.json"
 DATASET_KEY = "peptide_atlas"          # shares the peptide kernel/modality
-TEST_RATIO, VAL_RATIO = 0.20, 0.15
+TEST_RATIO, VAL_RATIO = 0.20, 0.10      # as comparison/scripts (VAL_RATIO of train)
 METRIC = "pcc"
+LEARNING_RATE = 1e-3                   # as comparison/scripts/deep_learning/common.py
+EMBED_BATCH = 64
+
+
+def _embed_esmc(sequences: list[str], device: str) -> torch.Tensor:
+    """ESM-C 300M, mean-pooled over ALL tokens (BOS/EOS included, padding excluded).
+
+    Matches comparison/scripts/compute_embeddings.sh, which pools
+    `model.logits(...).embeddings.mean(dim=0)` per sequence. Batched here; the
+    padding mask makes it equal to that unbatched per-sequence mean.
+    """
+    from esm.models.esmc import ESMC
+    from esm.sdk.api import ESMProtein
+
+    model = ESMC.from_pretrained("esmc_300m").to(device).eval()
+    pad_id = model.tokenizer.pad_token_id
+    pooled: list[torch.Tensor] = []
+    with torch.no_grad():
+        for start in range(0, len(sequences), EMBED_BATCH):
+            batch = sequences[start:start + EMBED_BATCH]
+            tokens = torch.nn.utils.rnn.pad_sequence(
+                [model.encode(ESMProtein(sequence=seq)).sequence for seq in batch],
+                batch_first=True, padding_value=pad_id).to(device)
+            mask = (tokens != pad_id).unsqueeze(-1).float()
+            embeddings = model(tokens).embeddings.float()
+            pooled.append(((embeddings * mask).sum(1) / mask.sum(1)).cpu())
+    return torch.cat(pooled).to(torch.float32)
 
 
 def embed(sequences: list[str], cache: CacheStore, cache_key: str) -> torch.Tensor:
@@ -182,57 +208,34 @@ def build_context(method: str, sequences: list[str], families: np.ndarray,
 # ──────────────────────────────── evaluation ─────────────────────────────────
 
 def nearest_train_distance(train_sequences: list[str], query_sequences: list[str]) -> np.ndarray:
-    """Distance from each query to its nearest train sequence (HNSW, k=1)."""
-    cfg = DATASETS[DATASET_KEY]
-    hnsw = HNSWState(cfg.modality, train_sequences, proximity_threshold=TAU,
-                     **cfg.kernel_params)
-    hnsw.build(progress=False)
-    hits = hnsw.search(query_sequences, k=1, ef=50, threads=0, progress=False)
-    return np.array([hit[0][1] if hit else np.inf for hit in hits], dtype=float)
+    """Distance from each query to its nearest train sequence (exact, brute force).
 
-
-def _subset_sim_df(sim_df, train_idx: list[int]):
-    """Hestia similarity table restricted to train, with ids remapped to 0..n-1."""
-    frame = sim_df.to_pandas() if hasattr(sim_df, "to_pandas") else sim_df.copy()
-    remap = {old: new for new, old in enumerate(train_idx)}
-    keep = frame["query"].isin(remap) & frame["target"].isin(remap)
-    frame = frame[keep].copy()
-    frame["query"] = frame["query"].map(remap)
-    frame["target"] = frame["target"].map(remap)
-    return frame
-
-
-def build_subcontext(method: str, train_idx: list[int], context: dict) -> dict:
-    """`context` restricted to the train rows, reindexed to 0..len(train_idx)-1.
-
-    Lets a method carve its validation set out of train the same way it carved
-    test out of the full dataset.
+    Exact like comparison/scripts/deep_learning/compute_leakage.py: an approximate
+    search can miss the true nearest neighbour and so under-report leakage.
     """
-    sequences = [context["sequences"][i] for i in train_idx]
-    subcontext = {"sequences": sequences,
-                  "families": np.asarray(context["families"])[train_idx]}
-    if method == "refnd":
-        subgraph, _ = context["graph"].subgraph(list(train_idx))
-        communities = [context["communities"][i] for i in train_idx]
-        relabel = {old: new for new, old in enumerate(sorted(set(communities)))}
-        subcontext.update(graph=subgraph, communities=[relabel[c] for c in communities])
-    elif method == "hestia":
-        subcontext["sim_df"] = _subset_sim_df(context["sim_df"], train_idx)
-    return subcontext
+    from refnd import exact_nearest_neighbors
+    cfg = DATASETS[DATASET_KEY]
+    hits = exact_nearest_neighbors(cfg.modality, query_sequences, train_sequences, 1,
+                                   threads=0, progress=False, **cfg.kernel_params)
+    return np.array([hit[0][1] for hit in hits], dtype=float)
 
 
 def split_val(method: str, train_idx: list[int], seed: int,
               context: dict) -> tuple[list[int], list[int]]:
-    """Carve a validation set out of train using the SAME split method.
+    """Carve a validation set out of train. Returns (inner_train_idx, val_idx).
 
-    A random val split would leak near-duplicates into early stopping even for a
-    leakage-aware test split, so each method re-runs itself on the train rows.
-    Returns (inner_train_idx, val_idx) as global indices.
+    Random VAL_RATIO of train, as comparison/scripts/split_utils.split_train_val
+    does for the real-data benchmark. DataSAIL is the exception there too: it
+    re-runs its own C1e split on the train rows.
     """
-    subcontext = build_subcontext(method, train_idx, context)
-    inner_local, val_local = SPLIT_METHODS[method](
-        len(train_idx), seed, ratio=VAL_RATIO, **subcontext)
-    return ([train_idx[i] for i in inner_local], [train_idx[i] for i in val_local])
+    if method == "datasail":
+        sequences = [context["sequences"][i] for i in train_idx]
+        inner_local, val_local = datasail_split(len(train_idx), seed, sequences=sequences)
+        return [train_idx[i] for i in inner_local], [train_idx[i] for i in val_local]
+    order = np.array(train_idx)
+    np.random.default_rng(seed).shuffle(order)
+    n_val = max(1, int(len(order) * VAL_RATIO))
+    return order[n_val:].tolist(), order[:n_val].tolist()
 
 
 def pcc(predictions: np.ndarray, truth: np.ndarray) -> float:
@@ -251,7 +254,8 @@ def score_model(embeddings: torch.Tensor, labels: np.ndarray, inner_train_idx: l
     depends only on train_idx, val_idx and seed.)
     """
     result = train_eval_mlp(embeddings, labels, inner_train_idx, val_idx,
-                            list(test_idx) + list(production_idx), metric=METRIC, seed=seed)
+                            list(test_idx) + list(production_idx), metric=METRIC,
+                            lr=LEARNING_RATE, seed=seed)
     predictions = np.asarray(result["predictions"])
     return {"test_pcc": pcc(predictions[:len(test_idx)], labels[test_idx]),
             "production_pcc": pcc(predictions[len(test_idx):], labels[production_idx])}
