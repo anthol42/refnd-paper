@@ -33,6 +33,7 @@ scripts/                            VERBATIM cluster pipeline (see below)
   mmseqs_split/   run_protein.py + submit.sh
   random_split/   run_all.py + submit.sh
   datasail_split/ run_datasail.py + submit.sh
+                  datasail.def + datasail.lock + build_sif.sh (Apptainer image)
   deep_learning/  train_{protein,molecule,dna}.py, common.py, aggregate_*.py,
                   compute_leakage.py, plot_{results,leakage}.py, submit_*.sh
   setup.sh  download_data.sh  compute_embeddings.sh  run_full.sh
@@ -49,6 +50,7 @@ results, logs, and caches all live under `$BASE`. Venvs (`$HOME/venvs/...`),
 ```
 export REFND_EXP_BASE=/path/to/experiment   # optional; else derived from script location
 bash scripts/setup.sh              # create per-method venvs + logs/ dirs (login node, once)
+bash scripts/datasail_split/build_sif.sh  # build $BASE/datasail.sif from the pinned lock (login node, once)
 bash scripts/download_data.sh      # datasets + cache HF models under $BASE (needs internet)
 bash scripts/compute_embeddings.sh # frozen embeddings $BASE/embeddings/*.pt (GPU session)
 bash scripts/run_full.sh           # splits -> train -> leakage -> finalize (SLURM chain)

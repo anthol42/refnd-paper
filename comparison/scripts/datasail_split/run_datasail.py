@@ -46,11 +46,55 @@ E_TYPE = {"molecule": "M", "protein": "P", "dna": "G"}
 E_SIM = {"molecule": "ecfp", "protein": "mmseqs", "dna": "cdhit_est"}
 
 
-def run(splits_dir: str, dtype: str, dataset: str, seed: int, max_sec: int, threads: int,
-        epsilon: float, e_clusters: int):
+def split_entities(data: dict, e_type: str, e_sim: str, seed: int, max_sec: int,
+                   threads: int, epsilon: float, e_clusters: int, cache_dir: Path):
+    """DataSAIL C1e split of {id_str: entity}, with the infeasibility escalation.
+
+    DataSAIL's C1e ILP can be infeasible when native clustering yields a
+    lopsided cluster distribution. Empirically the effective lever is the
+    NUMBER of clusters (finer granularity -> packable), not the size tolerance:
+    peptides need e_clusters>=200 (they work then), molecules are fine at 50.
+    So escalate e_clusters first (at base epsilon), then fall back to loosening
+    epsilon at the finest granularity. Reseeding before each attempt keeps the
+    input shuffle identical, so only the clustering config changes.
+
+    Returns (train, val, test) sorted int ids and the (e_clusters, epsilon) used.
+    """
     import numpy as np
     from datasail.sail import datasail
 
+    n = len(data)
+    ncl_ladder = sorted({c for c in [e_clusters, 200, 500, 1000, 2000] if c <= n})
+    attempts = [(c, epsilon) for c in ncl_ladder]
+    attempts += [(ncl_ladder[-1], round(min(epsilon + d, 0.7), 3)) for d in (0.2, 0.45, 0.65)]
+
+    for ncl, eps in attempts:
+        np.random.seed(seed)  # controls DataSAIL's internal input shuffle
+        e_splits, _, _ = datasail(
+            techniques=["C1e"], splits=SPLITS, names=NAMES, runs=1,
+            solver="SCIP", e_type=e_type, e_data=data, e_sim=e_sim,
+            max_sec=max_sec, verbose="E", threads=threads,
+            epsilon=eps, e_clusters=ncl,
+            cache=True, cache_dir=str(cache_dir),
+        )
+        if not e_splits.get("C1e"):
+            print(f"[seed={seed}] e_clusters={ncl} epsilon={eps}: infeasible, escalating.")
+            continue
+        mapping = e_splits["C1e"][0]  # {id_str: split_name}
+        buckets = {"train": [], "val": [], "test": []}
+        for k, v in mapping.items():
+            if v in buckets:
+                buckets[v].append(int(k))
+        tr, va, te = sorted(buckets["train"]), sorted(buckets["val"]), sorted(buckets["test"])
+        if min(len(tr), len(va), len(te)) > 0:
+            return tr, va, te, (ncl, eps)
+        print(f"[seed={seed}] e_clusters={ncl} epsilon={eps}: degenerate, escalating.")
+
+    raise RuntimeError(f"[seed={seed}] no feasible split (tried {attempts}).")
+
+
+def run(splits_dir: str, dtype: str, dataset: str, seed: int, max_sec: int, threads: int,
+        epsilon: float, e_clusters: int):
     split_path = Path(splits_dir) / "datasail" / dataset / f"{seed}.json"
     if split_path.exists():
         print(f"[{dataset}][seed={seed}] already computed, skipping.")
@@ -65,49 +109,12 @@ def run(splits_dir: str, dtype: str, dataset: str, seed: int, max_sec: int, thre
 
     # Per-dataset clustering cache. NOTE: DataSAIL re-clusters per seed anyway
     # (it hashes the shuffled input), so across seeds this mostly helps the
-    # epsilon-escalation retries below, which reuse the same-seed clustering.
+    # epsilon-escalation retries in split_entities, which reuse the same-seed clustering.
     cache_dir = Path(splits_dir).parent / "cache" / "datasail_cache" / dataset
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    # DataSAIL's C1e ILP can be infeasible when native clustering yields a
-    # lopsided cluster distribution. Empirically the effective lever is the
-    # NUMBER of clusters (finer granularity -> packable), not the size tolerance:
-    # peptides need e_clusters>=200 (they work then), molecules are fine at 50.
-    # So escalate e_clusters first (at base epsilon), then fall back to loosening
-    # epsilon at the finest granularity. Reseeding before each attempt keeps the
-    # input shuffle identical, so only the clustering config changes.
-    n = len(data)
-    ncl_ladder = sorted({c for c in [e_clusters, 200, 500, 1000, 2000] if c <= n})
-    attempts = [(c, epsilon) for c in ncl_ladder]
-    attempts += [(ncl_ladder[-1], round(min(epsilon + d, 0.7), 3)) for d in (0.2, 0.45, 0.65)]
-
-    tr = va = te = []
-    used = None
-    for ncl, eps in attempts:
-        np.random.seed(seed)  # controls DataSAIL's internal input shuffle
-        e_splits, _, _ = datasail(
-            techniques=["C1e"], splits=SPLITS, names=NAMES, runs=1,
-            solver="SCIP", e_type=e_type, e_data=data, e_sim=e_sim,
-            max_sec=max_sec, verbose="E", threads=threads,
-            epsilon=eps, e_clusters=ncl,
-            cache=True, cache_dir=str(cache_dir),
-        )
-        if not e_splits.get("C1e"):
-            print(f"[{dataset}][seed={seed}] e_clusters={ncl} epsilon={eps}: infeasible, escalating.")
-            continue
-        mapping = e_splits["C1e"][0]  # {id_str: split_name}
-        buckets = {"train": [], "val": [], "test": []}
-        for k, v in mapping.items():
-            if v in buckets:
-                buckets[v].append(int(k))
-        tr, va, te = sorted(buckets["train"]), sorted(buckets["val"]), sorted(buckets["test"])
-        if min(len(tr), len(va), len(te)) > 0:
-            used = (ncl, eps)
-            break
-        print(f"[{dataset}][seed={seed}] e_clusters={ncl} epsilon={eps}: degenerate, escalating.")
-
-    if used is None:
-        raise RuntimeError(f"[{dataset}][seed={seed}] no feasible split (tried {attempts}).")
+    tr, va, te, used = split_entities(data, e_type, e_sim, seed, max_sec, threads,
+                                      epsilon, e_clusters, cache_dir)
     save_split(splits_dir, "datasail", dataset, seed, tr, va, te)
     print(f"[{dataset}][seed={seed}] train={len(tr)} val={len(va)} test={len(te)} "
           f"(e_clusters={used[0]}, epsilon={used[1]})")

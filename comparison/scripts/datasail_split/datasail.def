@@ -1,0 +1,41 @@
+Bootstrap: docker
+From: mambaorg/micromamba:2.0.5
+
+# DataSAIL image used by datasail_split/run_datasail.py and synthetic/datasail.py.
+# Build with datasail_split/build_sif.sh (do not build by hand, so the recipe
+# and the image never drift apart).
+#
+# By default the env is installed from datasail.lock (exact package URLs +
+# md5s), so rebuilds are bit-for-bit the same packages. `build_sif.sh --relock`
+# instead resolves the specs below and rewrites the lock. DataSAIL comes from
+# the kalininalab channel; the clustering binaries it shells out to (mmseqs2,
+# cd-hit) are NOT dependencies of that package and must be listed explicitly.
+
+%arguments
+    relock=0
+
+%files
+    datasail.lock /opt/datasail.lock
+
+%labels
+    Description DataSAIL 1.4.0 + clustering tools for refnd-paper comparison splits
+
+%post
+    if [ "{{ relock }}" = "1" ]; then
+        micromamba install -y -n base \
+            -c kalininalab -c conda-forge -c bioconda \
+            python=3.12 datasail=1.4.0 pandas pyarrow mmseqs2 cd-hit
+    else
+        micromamba install -y -n base -f /opt/datasail.lock
+    fi
+    micromamba clean -a -y
+
+%environment
+    export PATH=/opt/conda/bin:$PATH
+    export MAMBA_ROOT_PREFIX=/opt/conda
+    export MPLCONFIGDIR=/tmp/matplotlib
+
+%test
+    python -c "import datasail, pandas, pyarrow; from datasail.sail import datasail as _"
+    mmseqs version
+    command -v cd-hit-est
