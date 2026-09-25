@@ -2,11 +2,10 @@
 
 The observed label of a peptide is
 
-    y = alpha * family_effect[family] + beta * signal(sequence) + N(0, sigma^2)
+    y = signal(sequence) + N(0, sigma^2)
 
-- `signal` is a non-linear function of physicochemical properties computed from
-  the sequence alone with modlAMP (Müller et al. 2017).
-- `family_effect` is one random draw per family, shared by all its members.
+`signal` is a non-linear function of physicochemical properties computed from
+the sequence alone with modlAMP (Müller et al. 2017).
 """
 
 from __future__ import annotations
@@ -95,21 +94,13 @@ def signal(sequences: list[str]) -> np.ndarray:
 
 # ────────────────────────────────── observed label ────────────────────────────
 
-def meta_label(sequences: list[str], families: np.ndarray, alpha: float,
-               beta: float, sigma: float, seed: int = 0) -> np.ndarray:
-    """Observed label = alpha * family effect + beta * signal + Gaussian noise.
+def meta_label(sequences: list[str], sigma: float, seed: int = 0) -> np.ndarray:
+    """Observed label = signal + Gaussian noise.
 
     Args:
         sequences: Peptide sequences.
-        families: Family id of each sequence, aligned with `sequences`.
-        alpha: Weight of the family effect (one N(0, 1) draw per family, shared
-            by all members of the family).
-        beta: Weight of the mechanistic `signal`.
         sigma: Standard deviation of the per-peptide Gaussian noise.
-        seed: Seeds both the family effects and the noise.
+        seed: Seeds the noise.
     """
-    rng = np.random.default_rng(seed)
-    unique_families, family_positions = np.unique(np.asarray(families), return_inverse=True)
-    family_effect = rng.normal(0.0, 1.0, size=len(unique_families))[family_positions]
-    noise = rng.normal(0.0, sigma, size=len(sequences))
-    return alpha * family_effect + beta * signal(sequences) + noise
+    noise = np.random.default_rng(seed).normal(0.0, sigma, size=len(sequences))
+    return signal(sequences) + noise

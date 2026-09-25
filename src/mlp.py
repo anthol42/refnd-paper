@@ -133,12 +133,15 @@ def train_eval_mlp(
             # probability of the positive class.
             probs = torch.softmax(test_out, dim=-1)[:, 1].numpy()
             score = float(roc_auc_score(y_te, probs))
+            preds_out = probs
         else:
             preds = test_out.argmax(dim=-1).numpy()
             score = float(matthews_corrcoef(y_te, preds))
+            preds_out = preds
         per_label_scores = None
     elif is_multilabel:
         preds = (torch.sigmoid(test_out) > 0.5).numpy().astype(np.int64)
+        preds_out = preds
         per_label_scores = []
         for j in range(n_labels):
             y_col, p_col = y_te[:, j], preds[:, j]
@@ -150,13 +153,17 @@ def train_eval_mlp(
         score = float(np.nanmean(per_label_scores))
     else:
         preds = test_out.squeeze(-1).numpy()
+        preds_out = preds
         score, _ = pearsonr(preds, y_te)
         score = float(score)
         r2 = float(1.0 - np.mean((preds - y_te) ** 2) / np.var(y_te))
         per_label_scores = None
 
     rprint(f"[dim]    MLP done in {time.perf_counter() - t0:.1f}s — {metric}={score:.4f}[/]")
-    result = {"metric": metric, "score": score}
+    # Raw per-sample predictions for test_idx, in the same order. Lets a caller
+    # score several disjoint sets from ONE fit: pass their union as test_idx and
+    # slice this, instead of refitting the identical model per set.
+    result = {"metric": metric, "score": score, "predictions": preds_out.tolist()}
     if metric == "pcc":
         result["r2"] = r2
     if per_label_scores is not None:

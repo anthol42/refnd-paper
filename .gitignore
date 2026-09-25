@@ -233,3 +233,8 @@ threshold/__pycache__/
 data/
 .DS_Store
 
+
+# Contains the Jupyter token
+.mcp.json
+run_jupyter.sh
+*.sif

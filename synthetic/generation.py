@@ -269,8 +269,6 @@ def plot_distances(distances: dict[str, np.ndarray], threshold: float = 0.5,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--n-families", type=int, default=20)
-    parser.add_argument("--n-peptides", type=int, default=3000)
     parser.add_argument("--branching", type=float, default=1.6)
     parser.add_argument("--edits-per-branch", type=float, default=3.0)
     parser.add_argument("--max-depth-edits", type=int, default=10,
@@ -283,6 +281,8 @@ def main() -> None:
     parser.add_argument("--pairs", type=int, default=6000)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
+    from synthetic.dataset import SyntheticConfig  # local: dataset imports this module
+    config = SyntheticConfig()
 
     cache = CacheStore()
     print("Loading PeptideAtlas profile...")
@@ -291,13 +291,13 @@ def main() -> None:
           f"[{profile.lengths.min()}-{profile.lengths.max()}], n={len(profile.lengths):,}")
 
     print("Growing forest...")
-    forest = grow_forest(profile, args.n_families, args.n_peptides,
+    forest = grow_forest(profile, config.n_families, config.n_peptides,
                          branching=args.branching,
                          edits_per_branch=args.edits_per_branch,
                          max_depth_edits=args.max_depth_edits,
                          temperature=args.temperature, seed=args.seed)
     sizes = np.bincount(forest.families)
-    print(f"  {len(forest.nodes):,} peptides in {args.n_families} families "
+    print(f"  {len(forest.nodes):,} peptides in {config.n_families} families "
           f"(size median={np.median(sizes):.0f} min={sizes.min()} max={sizes.max()}), "
           f"max depth_edits={max(node.depth_edits for node in forest.nodes)}")
 
@@ -307,8 +307,6 @@ def main() -> None:
         print(f"  {name:16s} mean={values.mean():.3f}  "
               f"p05={np.quantile(values, 0.05):.3f}  "
               f"frac<=0.5={(values <= 0.5).mean():.3f}")
-
-    plot_distances(distances)
 
 
 if __name__ == "__main__":

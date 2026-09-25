@@ -1194,7 +1194,7 @@ wheels = [
 
 [[package]]
 name = "jupyter-collaboration"
-version = "5.0.2"
+version = "5.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter-collaboration-ui" },
@@ -1202,18 +1202,18 @@ dependencies = [
     { name = "jupyter-server-ydoc" },
     { name = "jupyterlab" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/55/aa/3aa4b44ed64dc8297a82d6828eea05b9b61560135667ecfb4d59ac48ed81/jupyter_collaboration-5.0.2.tar.gz", hash = "sha256:9d75cff9ff07f77acfb3fb929b455697a450722005d76908375c7abbe583c74f", size = 3732, upload-time = "2026-08-25T08:35:22.226Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/b4/9a3a725083694aa98dcb7e0c99eda69ec9dce94cf2524dc62d9482607697/jupyter_collaboration-5.0.4.tar.gz", hash = "sha256:788228837b1e778d47c3cb91f2ba2f7bf789c7dcbcf3b38b8080407831686de4", size = 3732, upload-time = "2026-09-20T20:34:05.164Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d3/47/ee80f384934803f8370ec4c2a59bc2e18b6c39c5002db2177136173272a0/jupyter_collaboration-5.0.2-py3-none-any.whl", hash = "sha256:4cc061682ca2f3f3b48aae1296f9b0750ecc31ada7ed510b9dabe54663f05dac", size = 4749, upload-time = "2026-08-25T08:35:20.912Z" },
+    { url = "https://files.pythonhosted.org/packages/67/bc/f8681000da5e6abccfda306c8e58f304a404cf45a554c89b88a8dba7e6ad/jupyter_collaboration-5.0.4-py3-none-any.whl", hash = "sha256:38f41f80d066d34bddc3235dd956dee41529a0b73efe60ad1a0a15d5be659ffb", size = 4750, upload-time = "2026-09-20T20:34:03.378Z" },
 ]
 
 [[package]]
 name = "jupyter-collaboration-ui"
-version = "3.0.2"
+version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b4/f6/3c4fd317a34b2e80fa37e1f2134ddfb26ec046d1dc277f6c6fdec9e870a9/jupyter_collaboration_ui-3.0.2.tar.gz", hash = "sha256:5f6a3a5846f9b4093a118576d76731fdf01add22fb1795a62b29fd3ddfdd1314", size = 84304, upload-time = "2026-08-25T08:34:56.692Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/6e/2cb32e4e33a60dae81d77866fb2b6a8c44f70208edf24c53995c6395e590/jupyter_collaboration_ui-3.0.4.tar.gz", hash = "sha256:81b1000c0731888c81bf5ef820091e8565f42da9d700dc1364710b456a3cef83", size = 87944, upload-time = "2026-09-20T20:33:26.074Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8b/05/d3bbd9931a27b7b580a94652a9f66909d1124d931c37bb8be91dd60de3a7/jupyter_collaboration_ui-3.0.2-py3-none-any.whl", hash = "sha256:23b84cdf8bd7deed10386ea01e746186120cd2c69d0ce6470b9d1d54392bc456", size = 48041, upload-time = "2026-08-25T08:34:55.226Z" },
+    { url = "https://files.pythonhosted.org/packages/08/68/4859d297593fff1892844ae55cc99176498b05d0ccae0e743c61d052c2be/jupyter_collaboration_ui-3.0.4-py3-none-any.whl", hash = "sha256:a45290efc32eb934dfae020fd1848f35d1cf0c6cbd16f94a4e7984e32df1b7a5", size = 49048, upload-time = "2026-09-20T20:33:24.364Z" },
 ]
 
 [[package]]
@@ -1250,11 +1250,11 @@ wheels = [
 
 [[package]]
 name = "jupyter-docprovider"
-version = "3.0.2"
+version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/9d/24/33b5f3a39145f094ab65fb014432c153380a50b74fd2587b6792c2b87d05/jupyter_docprovider-3.0.2.tar.gz", hash = "sha256:f5ec96ee12ac4f34ffa48bd576262b24b525900f8ccca2bd7234ebcc71b133bf", size = 182688, upload-time = "2026-08-25T08:35:09.937Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/03/4522a0b5c2f3ff53a3e78460526379195f327f89660c2e75b44bbacc1f72/jupyter_docprovider-3.0.4.tar.gz", hash = "sha256:c8ee3d35bb9a5803856413e447b1b9bd80ce17b27ac6d2da623e1ca4447f2c8c", size = 182684, upload-time = "2026-09-20T20:33:47.604Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e7/5b/9261a98ba513207a4a3f9f0d26bcf90f7ed150c81c965d07bf0326b33bac/jupyter_docprovider-3.0.2-py3-none-any.whl", hash = "sha256:e2ad58bfb1d0e172bc5f1a6622952753356960989396ff52b8e76638dfcd766a", size = 164680, upload-time = "2026-08-25T08:35:08.137Z" },
+    { url = "https://files.pythonhosted.org/packages/42/07/723ffe5bd7fc1d7fc4424bd5bfda7efe2a75801c0968716a284cbd2a3767/jupyter_docprovider-3.0.4-py3-none-any.whl", hash = "sha256:331385e90ce9837ebd192593999d28a1116e51e63d687a2c79c6ca5cb4d0d974", size = 164671, upload-time = "2026-09-20T20:33:45.444Z" },
 ]
 
 [[package]]
@@ -1290,14 +1290,15 @@ wheels = [
 
 [[package]]
 name = "jupyter-mcp-tools"
-version = "0.1.7"
+version = "0.1.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "jupyter-server" },
+    { name = "requests" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/5f/b8954e007593d9340f0a810c0f7bd9365e7a0857d7afdbafcdea88149c64/jupyter_mcp_tools-0.1.7-py3-none-any.whl", hash = "sha256:79c280962b55f2666443701cfb0b86f39f47eeb06da75bd28d3379b9cfa1bde8", size = 46704, upload-time = "2026-08-10T06:50:28.503Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/19/ef1529f91f8c6fde8aab9f195d0b8bf2cc8c7a834eb4980984838b666e9b/jupyter_mcp_tools-0.1.8-py3-none-any.whl", hash = "sha256:e4c939fe3f497236ac4d298f687c39348a501da72ef12b87c0c3c3060d4ec1ac", size = 47816, upload-time = "2026-09-20T04:11:27.792Z" },
 ]
 
 [[package]]
@@ -1357,7 +1358,7 @@ wheels = [
 
 [[package]]
 name = "jupyter-server-ydoc"
-version = "3.0.2"
+version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jsonschema" },
@@ -1368,9 +1369,9 @@ dependencies = [
     { name = "pycrdt" },
     { name = "pycrdt-websocket" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/89/84/fe42f695985a9960c2a4fa8341c00997c7cbdb18a45864a9805041494b86/jupyter_server_ydoc-3.0.2.tar.gz", hash = "sha256:96610a0547130d47d19038a154a6d671408c800558e04fb8c12da93815a9caa1", size = 37899, upload-time = "2026-08-25T08:34:42.845Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/32/75da83e1e26e1066bfbd22571aec651872cd7fbe0002c582be6028982aca/jupyter_server_ydoc-3.0.4.tar.gz", hash = "sha256:f004c79c6c4ace03edff9176bb8695f96996609cd3a02c4d0197905a29323387", size = 37908, upload-time = "2026-09-20T20:33:02.356Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/be/a3ffb1ac98c726ef5b16447f2a86e5b0ddd0cc510b805833ce15b7653e2f/jupyter_server_ydoc-3.0.2-py3-none-any.whl", hash = "sha256:f82ad22f197a3fc75a0d82ad8b2b6a5aaa1a5a186cd715f32c9885a6f71ea004", size = 36383, upload-time = "2026-08-25T08:34:41.302Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/ff/6a660bf1b87ec72a88d3180a06a970e0a3ba4bce603e35849efc19d51623/jupyter_server_ydoc-3.0.4-py3-none-any.whl", hash = "sha256:1aaddb1d470b0f2dfc98ded9a9df37deecbb6b33a09cceb22fbbc3d428fc690e", size = 36394, upload-time = "2026-09-20T20:33:00.545Z" },
 ]
 
 [[package]]
@@ -1388,7 +1389,7 @@ wheels = [
 
 [[package]]
 name = "jupyterlab"
-version = "4.6.2"
+version = "4.6.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-lru" },
@@ -1405,9 +1406,9 @@ dependencies = [
     { name = "tornado" },
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7a/7f/51c0c856ab286bdaf5709cf61ed13584ed9d4bee906479707da45b11b353/jupyterlab-4.6.2.tar.gz", hash = "sha256:e18ce8b34f3de350e93cd5b2c4f3ae884cbe266eb76bf5d6825a4ed34c13bcff", size = 28183650, upload-time = "2026-07-21T12:05:24.051Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/8d/995cc142f6083346b35e7d3eadc5a6717ee89ce64ea53577010ac493bc3c/jupyterlab-4.6.4.tar.gz", hash = "sha256:404f49b081819378524886c9db66dba57a5565981eff885830df1baba3a17df5", size = 28335647, upload-time = "2026-09-21T15:25:18.779Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/1f/e39b248c76bb3736bc05a9491a6aa1315414c32dea12f548ecc1b24c758e/jupyterlab-4.6.2-py3-none-any.whl", hash = "sha256:5964447036629adfcd3fc0969effc1da6f47d2cbd0a60b2c2eea7c31be0ec6a8", size = 17166703, upload-time = "2026-07-21T12:05:19.818Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/e4/072bc0d3c6d45d414062a06af7ee81c02a2c12d769c358ec9919f9995ffd/jupyterlab-4.6.4-py3-none-any.whl", hash = "sha256:15b13f991d3985129c797eb84d9949eeb8b6615e14b444868e642411f2c418b2", size = 17171596, upload-time = "2026-09-21T15:25:14.123Z" },
 ]
 
 [[package]]

@@ -6,7 +6,7 @@ known, the sweep can be judged against ground truth: the ideal threshold is the
 one whose communities line up with the generated families.
 
 Usage:
-    uv run python -m synthetic.find_threshold --n-peptides 15000 --n-families 300
+    uv run python -m synthetic.find_threshold
 """
 
 from __future__ import annotations
@@ -88,7 +88,7 @@ def main() -> None:
     parser.add_argument("--production-seed", type=int, default=1)
     parser.add_argument("--thresh-lo", type=float, default=0.)
     parser.add_argument("--thresh-hi", type=float, default=0.9)
-    parser.add_argument("--n-sweep", type=int, default=9)
+    parser.add_argument("--n-sweep", type=int, default=19)
     parser.add_argument("--ef-construction", type=int, default=64)
     parser.add_argument("--n-null-pairs", type=int, default=10_000_000)
     args = parser.parse_args()
@@ -115,7 +115,7 @@ def main() -> None:
     thresholds, results = sweep_thresholds(
         graph, annotated_nodes, production_nodes, gamma_cdf,
         args.thresh_lo, args.thresh_hi, args.n_sweep,
-        inweight_type=INWeightType.SimilarityComplement,
+        inweight_type=INWeightType.Distance,
     )
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)

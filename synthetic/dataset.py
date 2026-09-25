@@ -18,11 +18,9 @@ from synthetic.label_generation import meta_label
 
 @dataclass
 class SyntheticConfig:
-    """Everything we toggle between runs."""
-    n_peptides: int = 15_000        # dataset size
-    n_families: int = 300           # number of seeds == number of families
-    alpha: float = 1.0              # weight of the family effect
-    beta: float = 1.0               # weight of the mechanistic signal
+    """Generator and label settings."""
+    n_peptides: int = 15_000        # dataset size (fixed)
+    n_families: int = 1000          # number of seeds == number of families (fixed)
     sigma: float = 0.05             # per-peptide Gaussian noise
     # forest shape
     branching: float = 1.6
@@ -56,20 +54,13 @@ def build_dataset(config: SyntheticConfig, seed: int,
                          max_depth_edits=config.max_depth_edits,
                          temperature=config.temperature, seed=seed)
     sequences, families = forest.sequences, forest.families
-    labels = meta_label(sequences, families, alpha=config.alpha, beta=config.beta,
-                        sigma=config.sigma, seed=seed)
+    labels = meta_label(sequences, sigma=config.sigma, seed=seed)
     return SyntheticDataset(sequences, families, labels, forest)
 
 
 def add_config_arguments(parser) -> None:
     """Attach the SyntheticConfig knobs to an argparse parser."""
     defaults = SyntheticConfig()
-    parser.add_argument("--n-peptides", type=int, default=defaults.n_peptides)
-    parser.add_argument("--n-families", type=int, default=defaults.n_families)
-    parser.add_argument("--alpha", type=float, default=defaults.alpha,
-                        help="weight of the per-family random effect")
-    parser.add_argument("--beta", type=float, default=defaults.beta,
-                        help="weight of the mechanistic signal")
     parser.add_argument("--sigma", type=float, default=defaults.sigma,
                         help="std of the per-peptide Gaussian noise")
     parser.add_argument("--branching", type=float, default=defaults.branching)
@@ -80,8 +71,7 @@ def add_config_arguments(parser) -> None:
 
 def config_from_args(args) -> SyntheticConfig:
     return SyntheticConfig(
-        n_peptides=args.n_peptides, n_families=args.n_families,
-        alpha=args.alpha, beta=args.beta, sigma=args.sigma,
+        sigma=args.sigma,
         branching=args.branching, edits_per_branch=args.edits_per_branch,
         max_depth_edits=args.max_depth_edits, temperature=args.temperature,
     )
