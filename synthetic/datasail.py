@@ -2,7 +2,7 @@
 so it plugs into `synthetic.compare_splits` like any in-process split method.
 
 The image is located via --datasail-sif / $DATASAIL_SIF, falling back to
-$REFND_EXP_BASE/datasail.sif (where comparison/scripts/datasail_split/submit.sh
+$RELAG_EXP_BASE/datasail.sif (where comparison/scripts/datasail_split/submit.sh
 expects it). The runtime is `apptainer`, or `singularity` if that is what exists.
 """
 
@@ -21,8 +21,8 @@ ENTRY = REPO_ROOT / "synthetic" / "datasail_entry.py"
 
 def find_sif(explicit: str | None = None) -> Path:
     candidates = [explicit, os.environ.get("DATASAIL_SIF")]
-    if os.environ.get("REFND_EXP_BASE"):
-        candidates.append(str(Path(os.environ["REFND_EXP_BASE"]) / "datasail.sif"))
+    if os.environ.get("RELAG_EXP_BASE"):
+        candidates.append(str(Path(os.environ["RELAG_EXP_BASE"]) / "datasail.sif"))
     # Where comparison/scripts/datasail_split/build_sif.sh puts it.
     candidates.append(str(REPO_ROOT / "comparison" / "scripts" / "datasail.sif"))
     for candidate in candidates:
@@ -30,7 +30,7 @@ def find_sif(explicit: str | None = None) -> Path:
             return Path(candidate)
     raise FileNotFoundError(
         "DataSAIL image not found: pass --datasail-sif, or set $DATASAIL_SIF or "
-        "$REFND_EXP_BASE (containing datasail.sif).")
+        "$RELAG_EXP_BASE (containing datasail.sif).")
 
 
 def find_runtime() -> str:

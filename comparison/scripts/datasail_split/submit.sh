@@ -14,7 +14,7 @@
 # One array task per seed. Each (seed,dataset) gets its own working dir so the
 # clustering tools never collide.
 SEED=$SLURM_ARRAY_TASK_ID
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SIF="$BASE/datasail.sif"
 RUN="$BASE/datasail_split/run_datasail.py"
 module load apptainer/1.4.5

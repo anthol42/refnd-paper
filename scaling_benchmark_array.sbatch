@@ -18,10 +18,10 @@
 # concurrently with another task, if prepare wasn't run first.
 #
 # TASKS below must stay in sync with DATASET_SIZES/METHODS in
-# scaling_benchmark.py: atlas/belka x [5 sizes] x [refnd, hestia] = 20 tasks.
+# scaling_benchmark.py: atlas/belka x [5 sizes] x [relag, hestia] = 20 tasks.
 #
 # --cpus-per-task / --mem are placeholders -- adjust to match what
-# split_refnd.py / split_hestia.py actually need at the largest sizes
+# split_relag.py / split_hestia.py actually need at the largest sizes
 # (3.125M / 15.625M); hestia in particular may need more of both.
 #
 # Usage:
@@ -36,7 +36,7 @@ export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Must match scaling_benchmark_prepare.sbatch -- that job populated the
 # subset files this array reads with --no-prepare.
-export REFND_CACHE_DIR=/home/lavertu/scratch/refnd_cache
+export RELAG_CACHE_DIR=/home/lavertu/scratch/refnd_cache
 
 mkdir -p logs results/scaling
 

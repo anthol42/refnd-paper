@@ -8,7 +8,7 @@
 
 # Aggregate per-seed results -> summaries + Wilcoxon table, then regenerate the
 # overfitting and leakage figures (now including protein/peptide).
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 module load python/3.13.2
 source "$HOME/venvs/refnd_exp/deep_learning/bin/activate"
 cd "$BASE"

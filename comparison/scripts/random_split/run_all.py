@@ -60,7 +60,7 @@ def run_dna(splits_dir: str, dataset: str, seeds: list):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()
 

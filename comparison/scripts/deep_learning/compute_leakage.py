@@ -16,7 +16,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from split_utils import load_protein_sequences
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 
 
 def build_fingerprints(smiles_list):
@@ -55,7 +55,7 @@ def nn_call(dtype, queries, references, threads):
             KernelVariant.TanimotoBit, queries, references, 1,
             threads=threads, progress=False)
     if dtype == "protein":
-        # Global alignment identity, matching the Refnd protein split.
+        # Global alignment identity, matching the relag protein split.
         return exact_nearest_neighbors(
             KernelVariant.AlignmentGlobal, queries, references, 1,
             threads=threads, progress=False)

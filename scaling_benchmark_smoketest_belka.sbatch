@@ -19,7 +19,7 @@
 set -euo pipefail
 
 export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
-export REFND_CACHE_DIR=/home/lavertu/scratch/refnd_cache
+export RELAG_CACHE_DIR=/home/lavertu/scratch/refnd_cache
 
 mkdir -p logs results/scaling
 

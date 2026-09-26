@@ -1,10 +1,10 @@
 """Compare max-identity-to-nearest-train-neighbor between an mmseqs2 cluster split
-and a refnd community split (no post-filtering), on the dbaasp dataset.
+and a relag community split (no post-filtering), on the dbaasp dataset.
 
 For each test sample, "max-identity" is 1 - (distance to its nearest train
 neighbor), i.e. the GlobalAligner/BLOSUM62 identity score. A leakage-free split
 should push this distribution toward low identities; mmseqs2 (min-seq-id=0.5)
-and refnd (proximity_threshold=0.5) are both clustering at the same identity
+and relag (proximity_threshold=0.5) are both clustering at the same identity
 threshold, so their resulting distributions are directly comparable.
 
 Usage:
@@ -89,9 +89,9 @@ def mmseqs_split(sequences: list[str]) -> tuple[list[int], list[int]]:
     return list(train_idx), list(test_idx)
 
 
-# ── refnd community split ───────────────────────────────────────────────────
+# ── relag community split ───────────────────────────────────────────────────
 
-def refnd_split(sequences: list[str]) -> tuple[list[int], list[int]]:
+def relag_split(sequences: list[str]) -> tuple[list[int], list[int]]:
     cfg = DATASETS[DATASET]
 
     print("  Computing null model for CPM gamma...")
@@ -104,7 +104,7 @@ def refnd_split(sequences: list[str]) -> tuple[list[int], list[int]]:
     graph = hnsw.edges().graph(inweight_type=INWeightType.Distance)
 
     communities = find_communities(graph, gamma=gamma, objective=LeidenObjective.CPM)
-    print(f"  refnd: {len(set(communities))} communities from {len(sequences)} sequences")
+    print(f"  relag: {len(set(communities))} communities from {len(sequences)} sequences")
 
     train_idx, test_idx = partition(communities, graph, test_ratio=TEST_RATIO,
                                      seed=SEED, post_filtering=False)
@@ -144,7 +144,7 @@ def plot_comparison(identities: dict[str, np.ndarray]) -> None:
 
     ax.set_xlabel("Max identity to nearest train neighbor")
     ax.set_ylabel("Density")
-    ax.set_title(f"{DATASET}: mmseqs2 (min-seq-id={MIN_SEQ_ID}) vs refnd (threshold={MIN_SEQ_ID}) split")
+    ax.set_title(f"{DATASET}: mmseqs2 (min-seq-id={MIN_SEQ_ID}) vs relag (threshold={MIN_SEQ_ID}) split")
     ax.legend(fontsize=8)
     plt.tight_layout()
     FIGURE.parent.mkdir(exist_ok=True)
@@ -162,14 +162,14 @@ def main() -> None:
     mmseqs_train, mmseqs_test = mmseqs_split(sequences)
     print(f"  train={len(mmseqs_train)}  test={len(mmseqs_test)}")
 
-    print("\n[refnd split]")
-    refnd_train, refnd_test = refnd_split(sequences)
-    print(f"  train={len(refnd_train)}  test={len(refnd_test)}")
+    print("\n[relag split]")
+    relag_train, relag_test = relag_split(sequences)
+    print(f"  train={len(relag_train)}  test={len(relag_test)}")
 
     print("\nComputing max-identity to nearest train neighbor...")
     identities = {
         "mmseqs2": max_identity_to_train(sequences, mmseqs_train, mmseqs_test),
-        "refnd":   max_identity_to_train(sequences, refnd_train, refnd_test),
+        "refnd":   max_identity_to_train(sequences, relag_train, relag_test),
     }
 
     RESULTS.parent.mkdir(exist_ok=True)

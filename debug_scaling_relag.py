@@ -1,4 +1,4 @@
-"""Per-stage timing breakdown for the refnd HNSW->Leiden pipeline, across dataset sizes.
+"""Per-stage timing breakdown for the relag HNSW->Leiden pipeline, across dataset sizes.
 
 Post-filtering is disabled so `partition()` timing isn't polluted by its
 violation-checking cost.
@@ -120,7 +120,7 @@ def _time_one(dataset: str, size: int) -> dict | None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Per-stage timing breakdown of the refnd pipeline")
+    parser = argparse.ArgumentParser(description="Per-stage timing breakdown of the relag pipeline")
     parser.add_argument("--dataset", choices=list(SIZES), default="atlas")
     parser.add_argument("--debug", action="store_true",
                         help="Only use 5K/25K sizes for a fast smoke test")

@@ -18,7 +18,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 from common import DATASET_CONFIG, PROTEIN_DATASETS, MOLECULE_DATASETS, DNA_DATASETS  # noqa: E402
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 RESULTS = BASE / "results"
 FIGDIR = RESULTS / "figures"
 HEADS = ["linear", "mlp"]

@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from split_utils import (save_split, save_community_stats, split_train_val,
                          track_split, SEEDS, DNA_DATASETS)
 
-THRESHOLD = 0.60  # 60% identity (was 0.95; now matches refnd's 0.40 distance)
+THRESHOLD = 0.60  # 60% identity (was 0.95; now matches relag's 0.40 distance)
 TEST_RATIO = 0.20
 VAL_RATIO = 0.10
 
@@ -57,7 +57,7 @@ def run(splits_dir: str, dataset: str, seeds: list):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--dataset", choices=DNA_DATASETS, required=True)
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()

@@ -29,7 +29,7 @@ from src.datasets import belka_unique_smiles, load_dataset
 
 SEED    = 42
 TIMEOUT = 86_400           # 1 day in seconds
-TMP_DIR = Path(os.environ.get("REFND_CACHE_DIR", ".cache")) / "scaling_tmp"
+TMP_DIR = Path(os.environ.get("RELAG_CACHE_DIR", ".cache")) / "scaling_tmp"
 
 Size = Union[int, str]     # int for a subsample size, or the literal "full"
 
@@ -59,7 +59,7 @@ def _load_items(dataset: str, cache: CacheStore) -> list[str]:
 # ── Method registry: name → runtime_scripts module (run via `python -m`) ──────
 
 METHODS: dict[str, str] = {
-    "refnd": "runtime_scripts.split_refnd",
+    "refnd": "runtime_scripts.split_relag",
     "hestia": "runtime_scripts.split_hestia",
     # "hnsw-only": "runtime_scripts.split_hnsw_only",
 }

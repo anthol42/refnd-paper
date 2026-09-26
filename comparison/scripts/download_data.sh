@@ -3,7 +3,7 @@
 # Also pre-downloads ChemBERTa and DNABERT-2 model weights for offline use in jobs.
 set -euo pipefail
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 HF_CACHE="$BASE/hf_cache"
 TDC_CACHE="$BASE/tdc_data"
 

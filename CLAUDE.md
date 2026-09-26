@@ -37,15 +37,15 @@ runtime_scripts.<name>`, so they can import `src.*` the same way).
 | `main.py` | CLI entry point; orchestrates the full pipeline |
 | `scaling_benchmark.py` | Split-pipeline runtime/memory scaling benchmark (atlas/belka) |
 | `edge_recall_scaling.py` | Effect of dataset size (and `ef_construction`) on HNSW edge recall |
-| `debug_scaling_refnd.py` | Per-stage timing breakdown of the refnd pipeline across sizes |
-| `max_identity_comparison.py` | mmseqs2 vs. refnd split leakage comparison on dbaasp |
+| `debug_scaling_relag.py` | Per-stage timing breakdown of the relag pipeline across sizes |
+| `max_identity_comparison.py` | mmseqs2 vs. relag split leakage comparison on dbaasp |
 | `src/cache.py` | `CacheStore` — persists edges (`.edgestr`), embeddings (`.pth`), datasets (`.pkl`) under `.cache/` |
 | `src/datasets.py` | Dataset registry (`DATASETS` dict) + download logic |
 | `src/embeddings.py` | Foundation model embedding computation (ESM-C, ChemBERTa, DNABERT-2) |
 | `src/metrics.py` | All metric helpers + null model + community-based split logic |
 | `src/mlp.py` | Two-layer MLP (Linear→ReLU→Linear) with early stopping |
 | `runtime_scripts/split_hnsw_only.py` | HNSW-only build timing, one method under `scaling_benchmark.py` |
-| `runtime_scripts/split_refnd.py` | Full HNSW→Leiden→partition timing, one method under `scaling_benchmark.py` |
+| `runtime_scripts/split_relag.py` | Full HNSW→Leiden→partition timing, one method under `scaling_benchmark.py` |
 | `runtime_scripts/split_hestia.py` | Hestia identity/similarity-based split timing, one method under `scaling_benchmark.py` |
 
 ---
@@ -88,7 +88,7 @@ All kernels return **distance** (lower = more similar). Edges exist where distan
 
 ### Null model (`null_model`)
 
-Estimates P(distance ≤ threshold) under a random baseline by shuffling each sample's elements (amino acids / bits / nucleotides), sampling 10M pairs, and running the refnd kernel in parallel across CPU threads. Used as gamma for CPM Leiden.
+Estimates P(distance ≤ threshold) under a random baseline by shuffling each sample's elements (amino acids / bits / nucleotides), sampling 10M pairs, and running the relag kernel in parallel across CPU threads. Used as gamma for CPM Leiden.
 
 ### Community-based val split
 

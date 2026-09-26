@@ -14,14 +14,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from split_utils import (save_split, save_community_stats, split_train_val,
                          track_split, load_protein_sequences, SEEDS, PROTEIN_DATASETS)
 
-THRESHOLD = 0.50  # 50% identity, matches refnd_split/run_protein.py's distance threshold
+THRESHOLD = 0.50  # 50% identity, matches relag_split/run_protein.py's distance threshold
 TEST_RATIO = 0.20
 VAL_RATIO = 0.10
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--dataset", choices=PROTEIN_DATASETS, default="dbaasp_amp")
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()

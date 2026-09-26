@@ -18,7 +18,7 @@ From: mambaorg/micromamba:2.0.5
     datasail.lock /opt/datasail.lock
 
 %labels
-    Description DataSAIL 1.4.0 + clustering tools for refnd-paper comparison splits
+    Description DataSAIL 1.4.0 + clustering tools for relag-paper comparison splits
 
 %post
     if [ "{{ relock }}" = "1" ]; then

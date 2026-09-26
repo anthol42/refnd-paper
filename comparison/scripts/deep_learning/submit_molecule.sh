@@ -16,7 +16,7 @@ DS_SEED=$((SLURM_ARRAY_TASK_ID % 60))
 DATASET=${DATASETS[$((DS_SEED / 10))]}
 SEED=$(( (DS_SEED % 10) + 1 ))
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 VENV="$HOME/venvs/refnd_exp/deep_learning"
 
 module load python/3.13.2

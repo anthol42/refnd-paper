@@ -7,7 +7,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-# Repo root (refnd-paper/), independent of cwd -- split_utils.py lives at
+# Repo root (relag-paper/), independent of cwd -- split_utils.py lives at
 # comparison/scripts/split_utils.py.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -146,25 +146,25 @@ def save_community_stats(splits_dir: str, method: str, dataset: str,
              if components is not None else ""))
 
 
-def save_refnd_sizes(splits_dir: str, dataset: str, sizes: dict):
+def save_relag_sizes(splits_dir: str, dataset: str, sizes: dict):
     """sizes: {seed: {"train": N, "val": N, "test": N}}"""
     path = Path(splits_dir) / "refnd" / dataset / "sizes.json"
     with open(path, "w") as f:
         json.dump(sizes, f, indent=2)
 
 
-def load_refnd_sizes(splits_dir: str, dataset: str) -> dict:
+def load_relag_sizes(splits_dir: str, dataset: str) -> dict:
     path = Path(splits_dir) / "refnd" / dataset / "sizes.json"
     if not path.exists():
         raise FileNotFoundError(
-            f"Refnd sizes not found at {path}. Run refnd_split first."
+            f"relag sizes not found at {path}. Run relag_split first."
         )
     with open(path) as f:
         d = json.load(f)
     if len(d) < 10:
         raise ValueError(
             f"sizes.json for {dataset} only has {len(d)}/10 seeds. "
-            "Refnd split may be incomplete."
+            "relag split may be incomplete."
         )
     return d
 

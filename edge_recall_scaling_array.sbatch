@@ -40,7 +40,7 @@ export OPENBLAS_NUM_THREADS=1
 
 # Must match scaling_benchmark_prepare.sbatch -- that job populated the
 # subset files this array reads with --no-prepare.
-export REFND_CACHE_DIR=/home/lavertu/scratch/refnd_cache
+export RELAG_CACHE_DIR=/home/lavertu/scratch/refnd_cache
 
 mkdir -p logs results/edge_recall
 

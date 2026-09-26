@@ -18,7 +18,7 @@ noise as well as split noise.
 
 A random split should show high leakage, a high test score and a large
 test-production gap, because it lets the model pick up near-duplicate signal it
-cannot transfer. Similarity-aware splits (refnd, hestia, datasail) should show
+cannot transfer. Similarity-aware splits (relag, hestia, datasail) should show
 little leakage and a test score close to production.
 
 Every run is appended to RESULTS_PATH as one record, and the file is rewritten
@@ -58,7 +58,7 @@ SIGMA = 0.05
 METHODS = ["random", "refnd", "hestia", "datasail", "family_oracle"]
 N_REPEATS = 100                        # each repeat draws a fresh annotated + production pair
 N_NULL_PAIRS = 10_000_000
-DATASAIL_SIF = None                    # else $DATASAIL_SIF or $REFND_EXP_BASE/datasail.sif
+DATASAIL_SIF = None                    # else $DATASAIL_SIF or $RELAG_EXP_BASE/datasail.sif
 
 RESULTS_PATH = Path(__file__).parent.parent / "results" / "synthetic" / f"compare_splits_tau{TAU:g}.json"
 DATASET_KEY = "peptide_atlas"          # shares the peptide kernel/modality
@@ -114,7 +114,7 @@ def random_split(n_samples: int, seed: int, ratio: float = TEST_RATIO,
     return order[n_test:].tolist(), order[:n_test].tolist()
 
 
-def refnd_split(n_samples: int, seed: int, ratio: float = TEST_RATIO,
+def relag_split(n_samples: int, seed: int, ratio: float = TEST_RATIO,
                 communities=None, graph=None, **_) -> tuple[list[int], list[int]]:
     """Community-based partition of the HNSW graph (CPM Leiden, null-model gamma)."""
     train_idx, test_idx = partition(communities, graph, test_ratio=ratio,
@@ -126,7 +126,7 @@ def hestia_split(n_samples: int, seed: int, ratio: float = TEST_RATIO,
                  sequences=None, sim_df=None, **_) -> tuple[list[int], list[int]]:
     """Hestia ccpart_random: whole connected components assigned to one side.
 
-    Hestia thresholds on *identity*, refnd on distance, so the identity
+    Hestia thresholds on *identity*, relag on distance, so the identity
     threshold matching TAU is 1 - TAU.
     """
     import pandas as pd
@@ -164,7 +164,7 @@ def family_oracle_split(n_samples: int, seed: int, ratio: float = TEST_RATIO,
     return np.nonzero(~in_test)[0].tolist(), np.nonzero(in_test)[0].tolist()
 
 
-SPLIT_METHODS = {"random": random_split, "refnd": refnd_split,
+SPLIT_METHODS = {"random": random_split, "refnd": relag_split,
                  "hestia": hestia_split, "datasail": datasail_split,
                  "family_oracle": family_oracle_split}
 
@@ -180,18 +180,18 @@ def build_context(method: str, sequences: list[str], families: np.ndarray,
         hnsw.build(progress=True)
         graph = hnsw.edges().graph(inweight_type=INWeightType.Distance)
         communities = find_communities(graph, gamma=gamma, objective=LeidenObjective.CPM)
-        print(f"    refnd: {len(set(communities)):,} communities")
+        print(f"    relag: {len(set(communities)):,} communities")
         context.update(graph=graph, communities=communities)
         # How well the communities recover the true families (annotated dataset).
         from sklearn.metrics import adjusted_rand_score
         context["ari"] = float(adjusted_rand_score(families, communities))
-        print(f"    refnd: ARI vs true families = {context['ari']:.3f}")
+        print(f"    relag: ARI vs true families = {context['ari']:.3f}")
     elif method == "hestia":
         import pandas as pd
         from hestia.dataset_generator import HestiaGenerator, SimArguments
         generator = HestiaGenerator(pd.DataFrame({"sequence": sequences}), verbose=False)
         # denominator="longest" normalises identity by the longer sequence, as
-        # refnd's kernel does (GlobalIdentityMode.MaxLength). Hestia's default
+        # relag's kernel does (GlobalIdentityMode.MaxLength). Hestia's default
         # normalises by the aligned length, so a short local match between two
         # unrelated peptides scores ~0.7 and chains every family into a single
         # connected component, leaving nothing to split.

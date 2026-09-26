@@ -35,7 +35,7 @@ The HNSW parameters we will toggle are:
 
 ## Scaling experiment
 > By running `scaling_benchmark.py`
-> You can also run `debug_scaling_refnd.py` to see the time each step of the refnd pipeline take.
+> You can also run `debug_scaling_relag.py` to see the time each step of the relag pipeline take.
 
 Explore experimental scaling in speed and memory pressure over dataset size. Test for peptide Atlas and Belka dataset.
 Compares with Hestia's split.

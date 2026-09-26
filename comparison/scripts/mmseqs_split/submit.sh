@@ -6,7 +6,7 @@
 #SBATCH --mem=16G
 #SBATCH --output=logs/splits/mmseqs_%j.out
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 VENV="$HOME/venvs/refnd_exp/mmseqs_split"
 SPLITS="$BASE/splits"
 

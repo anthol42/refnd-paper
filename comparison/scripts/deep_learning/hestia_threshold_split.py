@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Hestia DNA threshold sweep (deeppromoter): produce a split at each identity
 threshold and save the indices. Runs in the hestia venv. Leakage is measured
-separately (refnd venv) so it's comparable to the refnd sweep.
+separately (relag venv) so it's comparable to the relag sweep.
 
 Hestia's threshold is a plain similarity (no 1-T); a partition at threshold t means
 no train/test pair exceeds t similarity."""
@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 from hestia.dataset_generator import HestiaGenerator, SimArguments
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 OUT = BASE / "dna_thr_test"
 OUT.mkdir(exist_ok=True)
 SEED = 1

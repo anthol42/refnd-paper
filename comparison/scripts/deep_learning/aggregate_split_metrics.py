@@ -2,7 +2,7 @@
 """Merge per-(method,dataset) split-cost records into results/split_metrics.csv.
 
 Each split script writes results/split_metrics/{method}/{dataset}[_seed{s}].json
-via split_utils.track_split. Build-once methods (refnd/hestia/mmseqs/random) time
+via split_utils.track_split. Build-once methods (relag/hestia/mmseqs/random) time
 all 10 seeds in one process → one file per dataset. DataSAIL splits one seed per
 process → 10 files per dataset; we sum their seconds (total compute to produce the
 10 splits) and take the max peak RSS.
@@ -17,7 +17,7 @@ from pathlib import Path
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--results-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "results"))
+    ap.add_argument("--results-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "results"))
     args = ap.parse_args()
 
     root = Path(args.results_dir) / "split_metrics"
@@ -40,7 +40,7 @@ def main():
                         round(v["peak_rss_mb"], 1), v["n"]])
     print(f"Wrote {out} ({len(agg)} method×dataset rows)")
 
-    # Community/cluster counts (refnd, and any other method that writes them).
+    # Community/cluster counts (relag, and any other method that writes them).
     comm_rows = []
     for f in sorted(root.glob("*/*_communities.json")):
         s = json.loads(f.read_text())

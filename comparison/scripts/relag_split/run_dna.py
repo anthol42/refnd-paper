@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Refnd splits for GUE DNA datasets (CPM + null-model gamma, no post-filtering)."""
+"""relag splits for GUE DNA datasets (CPM + null-model gamma, no post-filtering)."""
 import os
 import argparse
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from split_utils import (save_split, save_refnd_sizes, save_community_stats,
+from split_utils import (save_split, save_relag_sizes, save_community_stats,
                          split_train_val, track_split, SEEDS, DNA_DATASETS)
 
-# refnd proximity_threshold is a DISTANCE (= 1 - identity). Target 60% identity
+# relag proximity_threshold is a DISTANCE (= 1 - identity). Target 60% identity
 # for DNA (Hestia gets threshold=0.60) -> 1 - 0.60 = 0.40. This sits just above
 # the ~0.6 identity noise floor of the 4-letter alphabet, so watch the community
-# stats: if refnd collapses to one giant component (degenerate train=0), back off
+# stats: if relag collapses to one giant component (degenerate train=0), back off
 # toward 0.32 (~68% identity, the previous known-splittable setting).
 THRESHOLD = 0.40
 TEST_RATIO = 0.20
@@ -52,7 +52,7 @@ def build_graph_and_communities(sequences: list):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--dataset", choices=DNA_DATASETS, required=True)
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()
@@ -79,7 +79,7 @@ def main():
             print(f"[{args.dataset}][seed={seed}] train={len(train_idx)} val={len(val_idx)} test={len(test_idx)}")
             sizes[str(seed)] = {"train": len(train_idx), "val": len(val_idx), "test": len(test_idx)}
 
-    save_refnd_sizes(args.splits_dir, args.dataset, sizes)
+    save_relag_sizes(args.splits_dir, args.dataset, sizes)
     save_community_stats(args.splits_dir, "refnd", args.dataset,
                          communities, per_seed_local, components=components)
     print(f"Saved sizes.json for {args.dataset}")

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """DNA threshold test (deeppromoter): does raising the identity threshold above the
-~0.6 noise floor let Refnd carve out a test set that is genuinely dissimilar to train?
+~0.6 noise floor let relag carve out a test set that is genuinely dissimilar to train?
 
-For each identity threshold T we build the Refnd proximity graph at
-proximity_threshold = 1 - T  (Refnd's threshold is a DISTANCE), partition, then
+For each identity threshold T we build the relag proximity graph at
+proximity_threshold = 1 - T  (relag's threshold is a DISTANCE), partition, then
 measure the test->train max identity (exact NN). Compared against a random split.
 """
 import os
@@ -17,7 +17,7 @@ import pandas as pd
 from refnd import KernelVariant, HNSWState, find_communities, partition, exact_nearest_neighbors
 from refnd.kernels.alignments import LocalIdentityMode, CoverageMode, ScoringMatrix
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 SEED = 1
 TEST_RATIO = 0.20
 THREADS = 16

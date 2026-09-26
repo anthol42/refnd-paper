@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Refnd splits for DBAASP protein dataset (CPM + null-model gamma, no post-filtering)."""
+"""relag splits for DBAASP protein dataset (CPM + null-model gamma, no post-filtering)."""
 import os
 import argparse
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from split_utils import (save_split, save_refnd_sizes, save_community_stats,
+from split_utils import (save_split, save_relag_sizes, save_community_stats,
                          split_train_val, track_split, load_protein_sequences,
                          REPO_ROOT, SEEDS, PROTEIN_DATASETS)
 
-# refnd proximity_threshold is a DISTANCE (= 1 - identity). 50% identity target
+# relag proximity_threshold is a DISTANCE (= 1 - identity). 50% identity target
 # -> 1 - 0.50 = 0.50 (matches Hestia's THRESHOLD below).
 THRESHOLD = 0.50
 TEST_RATIO = 0.20
@@ -42,7 +42,7 @@ def build_graph_and_communities(sequences: list):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--dataset", choices=PROTEIN_DATASETS, default="dbaasp_amp")
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()
@@ -67,7 +67,7 @@ def main():
             print(f"[{args.dataset}][seed={seed}] train={len(train_idx)} val={len(val_idx)} test={len(test_idx)}")
             sizes[str(seed)] = {"train": len(train_idx), "val": len(val_idx), "test": len(test_idx)}
 
-    save_refnd_sizes(args.splits_dir, args.dataset, sizes)
+    save_relag_sizes(args.splits_dir, args.dataset, sizes)
     save_community_stats(args.splits_dir, "refnd", args.dataset,
                          communities, per_seed_local, components=components)
     print(f"Saved sizes.json for {args.dataset}")

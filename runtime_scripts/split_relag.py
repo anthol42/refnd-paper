@@ -1,4 +1,4 @@
-"""HNSW → Leiden → partition. Usage: uv run python -m runtime_scripts.split_refnd <atlas|belka> <subset_file>"""
+"""HNSW → Leiden → partition. Usage: uv run python -m runtime_scripts.split_relag <atlas|belka> <subset_file>"""
 import sys
 from pathlib import Path
 

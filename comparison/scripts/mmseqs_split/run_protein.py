@@ -84,7 +84,7 @@ def run(splits_dir: str, dataset: str, seed: int, threads: int):
     sequences = df["sequence"].tolist()
     ids = list(range(len(sequences)))
 
-    with tempfile.TemporaryDirectory(dir=os.environ.get("REFND_TMP", str(Path(__file__).resolve().parent.parent / "tmp"))) as tmp_dir:
+    with tempfile.TemporaryDirectory(dir=os.environ.get("RELAG_TMP", str(Path(__file__).resolve().parent.parent / "tmp"))) as tmp_dir:
         fasta_path = os.path.join(tmp_dir, "seqs.fasta")
         write_fasta(sequences, ids, fasta_path)
         member_to_rep = run_mmseqs(fasta_path, tmp_dir, IDENTITY, threads)
@@ -99,13 +99,13 @@ def run(splits_dir: str, dataset: str, seed: int, threads: int):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--dataset", choices=PROTEIN_DATASETS, default="dbaasp_amp")
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     parser.add_argument("--threads", type=int, default=8)
     args = parser.parse_args()
 
-    os.makedirs(os.environ.get("REFND_TMP", str(Path(__file__).resolve().parent.parent / "tmp")), exist_ok=True)
+    os.makedirs(os.environ.get("RELAG_TMP", str(Path(__file__).resolve().parent.parent / "tmp")), exist_ok=True)
     with track_split("mmseqs2", args.dataset, args.splits_dir):
         for seed in args.seeds:
             run(args.splits_dir, args.dataset, seed, args.threads)

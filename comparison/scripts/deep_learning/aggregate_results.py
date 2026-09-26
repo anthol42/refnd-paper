@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import wilcoxon
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 RESULTS_DIR = BASE / "results"
 
 PROTEIN_METHODS  = ["refnd", "random", "mmseqs2", "hestia", "datasail"]
@@ -58,8 +58,8 @@ def summarize(scores: list) -> dict:
     }
 
 
-def wilcoxon_p(refnd_scores: list, other_scores: list) -> float:
-    pairs = [(r, o) for r, o in zip(refnd_scores, other_scores)
+def wilcoxon_p(relag_scores: list, other_scores: list) -> float:
+    pairs = [(r, o) for r, o in zip(relag_scores, other_scores)
              if r is not None and o is not None]
     if len(pairs) < 5:
         return None
@@ -77,7 +77,7 @@ def process_task(task_type: str, datasets: list, methods: list):
         out_path = RESULTS_DIR / task_type / dataset / "summary.json"
         summary = {}
 
-        refnd = load_scores(task_type, dataset, "refnd")
+        relag = load_scores(task_type, dataset, "refnd")
 
         for method in methods:
             scores = load_scores(task_type, dataset, method)
@@ -88,7 +88,7 @@ def process_task(task_type: str, datasets: list, methods: list):
             if method != "refnd":
                 for h in HEADS:
                     all_wilcoxon[f"{dataset}/{method}/{h}"] = wilcoxon_p(
-                        refnd[h]["test"], scores[h]["test"])
+                        relag[h]["test"], scores[h]["test"])
 
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w") as f:
@@ -131,7 +131,7 @@ def main():
         json.dump(wilcoxon_table, f, indent=2)
 
     print(f"\nWilcoxon table saved to {wil_path}")
-    print("\nWilcoxon p-values (Refnd vs others):")
+    print("\nWilcoxon p-values (relag vs others):")
     for key, p in sorted(wilcoxon_table.items()):
         stars = ""
         if p is not None:

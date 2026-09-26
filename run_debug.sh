@@ -5,7 +5,7 @@
 #
 # Every command's full stdout+stderr is teed live to logs/debug_<timestamp>/<label>.log.
 #
-# scaling_benchmark.py shells out to runtime_scripts.split_refnd/split_hestia
+# scaling_benchmark.py shells out to runtime_scripts.split_relag/split_hestia
 # and swallows their failures itself (records a "status" field in
 # results/runtime_<dataset>.json instead of raising), so it always exits 0
 # even when a method failed. run_scaling() below detects that case by diffing
@@ -79,14 +79,14 @@ run hyperparameters_prom_core_all uv run python hyperparameters.py --dataset pro
 run_scaling atlas scaling_atlas uv run python scaling_benchmark.py --dataset atlas --debug
 run_scaling belka scaling_belka uv run python scaling_benchmark.py --dataset belka --debug
 
-# Per-stage timing breakdown of the refnd pipeline
-run debug_scaling_refnd uv run python debug_scaling_refnd.py --debug
+# Per-stage timing breakdown of the relag pipeline
+run debug_scaling_relag uv run python debug_scaling_relag.py --debug
 
 # Effect of dataset size (and ef_construction) on HNSW edge recall
 run edge_recall_atlas uv run python edge_recall_scaling.py --dataset atlas --debug
 run edge_recall_belka uv run python edge_recall_scaling.py --dataset belka --sizes 100000,500000
 
-# In-distribution test (refnd + hestia split methods) for every dataset with an encoder
+# In-distribution test (relag + hestia split methods) for every dataset with an encoder
 run in_distribution_dbaasp        uv run python in_distribution_test.py --dataset dbaasp        --method both --debug
 run in_distribution_ld50_zhu      uv run python in_distribution_test.py --dataset ld50_zhu      --method both --debug
 run in_distribution_prom_core_all uv run python in_distribution_test.py --dataset prom_core_all --method both --debug

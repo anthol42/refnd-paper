@@ -3,7 +3,7 @@
 Ported from refnd-paper/src/metrics.py. Estimates gamma = P(distance between two
 random, element-shuffled samples <= proximity_threshold) via a GPD peaks-over-
 threshold tail fit, then hands it to find_communities(..., objective=CPM) as the
-CPM resolution. See refnd-paper/src/metrics.py for the derivation.
+CPM resolution. See relag-paper/src/metrics.py for the derivation.
 """
 from __future__ import annotations
 

@@ -87,13 +87,13 @@ run() {
 #run uv run python edge_recall_scaling.py --dataset atlas
 #run uv run python edge_recall_scaling.py --dataset belka --sizes 25000,125000,625000
 
-# In-distribution test (refnd + hestia split methods) for every dataset with an encoder
+# In-distribution test (relag + hestia split methods) for every dataset with an encoder
 run uv run python in_distribution_test.py --dataset dbaasp        --method both
 run uv run python in_distribution_test.py --dataset ld50_zhu      --method both
 run uv run python in_distribution_test.py --dataset prom_core_all --method both
 
-# Per-stage timing breakdown of the refnd pipeline
-run uv run python debug_scaling_refnd.py
+# Per-stage timing breakdown of the relag pipeline
+run uv run python debug_scaling_relag.py
 
 # Peptide Atlas - ef-init only
 run uv run python hyperparameters.py --dataset dbaasp        --ef-construction 64 --ef-init 1 --keep-pruned-connections --use-heuristic --leiden-objective cpm

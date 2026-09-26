@@ -6,7 +6,7 @@
 #SBATCH --mem=32G
 #SBATCH --output=logs/splits/hestia_%j.out
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 VENV="$HOME/venvs/refnd_exp/hestia_split"
 SPLITS="$BASE/splits"
 

@@ -11,7 +11,7 @@
 # vs. the non-triazine subset of the real Kaggle test set (production).
 #
 # Every stage (SMILES extraction, fingerprinting, HNSW build+index cache,
-# layer-0 edge weights, null model) is cached under $REFND_CACHE_DIR, so a
+# layer-0 edge weights, null model) is cached under $RELAG_CACHE_DIR, so a
 # requeued/restarted job resumes instead of recomputing from scratch.
 #
 # Usage:
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 export RAYON_NUM_THREADS=$SLURM_CPUS_PER_TASK
-export REFND_CACHE_DIR=/home/lavertu/scratch/refnd_cache
+export RELAG_CACHE_DIR=/home/lavertu/scratch/refnd_cache
 
 cd "$SLURM_SUBMIT_DIR"
 mkdir -p logs

@@ -41,7 +41,7 @@ echo "$current_dir"
 
 mkdir -p "$OUTPATH"
 
-# refnd's HNSW build/export progress bars are indicatif, which only draws
+# relag's HNSW build/export progress bars are indicatif, which only draws
 # when stderr is a real tty (console::Term::is_term(), a genuine isatty()
 # check -- no env var can fake this). SLURM redirects --output/--error to a
 # log file, so without a pty indicatif silently disables itself entirely

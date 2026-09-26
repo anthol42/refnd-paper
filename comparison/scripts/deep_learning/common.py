@@ -176,10 +176,10 @@ def load_split(splits_dir: str, method: str, dataset: str, seed: int):
     return np.array(d["train"]), np.array(d["val"]), np.array(d["test"])
 
 
-def load_refnd_sizes(splits_dir: str, dataset: str) -> dict:
+def load_relag_sizes(splits_dir: str, dataset: str) -> dict:
     path = Path(splits_dir) / "refnd" / dataset / "sizes.json"
     if not path.exists():
-        raise FileNotFoundError(f"sizes.json missing for {dataset}. Run refnd_split first.")
+        raise FileNotFoundError(f"sizes.json missing for {dataset}. Run relag_split first.")
     with open(path) as f:
         d = json.load(f)
     if len(d) < 10:

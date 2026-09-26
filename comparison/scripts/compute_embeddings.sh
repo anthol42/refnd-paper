@@ -3,7 +3,7 @@
 # Request GPU interactive: salloc --gres=gpu:1 --mem=32G --time=3:00:00 --account=def-sgobeil
 set -euo pipefail
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 HF_CACHE="$BASE/hf_cache"
 
 module load python/3.13.2

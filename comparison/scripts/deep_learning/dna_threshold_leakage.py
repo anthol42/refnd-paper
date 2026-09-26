@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Measure test->train max identity (exact AlignmentLocal NN, refnd) for the Hestia
-threshold-sweep splits saved by hestia_threshold_split.py. Runs in the refnd venv so
-the identity metric matches the refnd sweep. Also prints a random baseline."""
+"""Measure test->train max identity (exact AlignmentLocal NN, relag) for the Hestia
+threshold-sweep splits saved by hestia_threshold_split.py. Runs in the relag venv so
+the identity metric matches the relag sweep. Also prints a random baseline."""
 import os
 import glob
 import json
@@ -12,7 +12,7 @@ import pandas as pd
 from refnd import KernelVariant, exact_nearest_neighbors
 from refnd.kernels.alignments import LocalIdentityMode, CoverageMode, ScoringMatrix
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 THREADS = 16
 SEED = 1
 ALN = dict(identity_mode=LocalIdentityMode.MinSeqLength, cov_mode=CoverageMode.ShorterSeq,

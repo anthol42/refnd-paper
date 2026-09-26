@@ -11,7 +11,7 @@ from common import (
     train_and_evaluate, save_seed_result,
 )
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 MOLECULE_METHODS = ["refnd", "random", "hestia", "datasail"]
 
 

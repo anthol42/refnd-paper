@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SPLITS="$BASE/splits"
 
 module load python/3.13.2 rdkit/2024.09.6 mmseqs2/17-b804f

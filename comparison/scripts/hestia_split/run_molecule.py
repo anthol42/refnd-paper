@@ -6,7 +6,7 @@ the default ccpart, which is deterministic -> identical test sets across seeds.
 NOTE: HestiaGenerator.calculate_partitions cannot be used for this: it rejects
 'ccpart_random' in validation, and even its dead ccpart_random branch never forwards
 the seed. So we compute similarity once and call ccpart_random directly with seed=seed.
-Validation is carved from train via split_train_val (consistent with refnd/mmseqs).
+Validation is carved from train via split_train_val (consistent with relag/mmseqs).
 """
 import os
 import argparse
@@ -61,7 +61,7 @@ def run(splits_dir: str, dataset: str, seeds: list):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    parser.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     parser.add_argument("--dataset", choices=MOLECULE_DATASETS, required=True)
     parser.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
     args = parser.parse_args()

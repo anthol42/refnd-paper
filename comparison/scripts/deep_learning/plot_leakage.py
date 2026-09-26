@@ -19,7 +19,7 @@ from common import MOLECULE_DATASETS, DNA_DATASETS  # noqa: E402
 
 PROTEIN_DATASETS = ["dbaasp_amp", "enzyme_topt"]
 
-BASE = Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
+BASE = Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent)))
 LEAK = BASE / "results" / "leakage"
 FIGDIR = BASE / "results" / "figures_leakage"
 THRESHOLD = 0.40  # leakage cutoff (Tanimoto for molecules, identity for DNA)

@@ -122,7 +122,7 @@ def run(splits_dir: str, dtype: str, dataset: str, seed: int, max_sec: int, thre
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--splits-dir", default=str(Path(os.environ.get("REFND_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
+    p.add_argument("--splits-dir", default=str(Path(os.environ.get("RELAG_EXP_BASE", str(Path(__file__).resolve().parent.parent))) / "splits"))
     p.add_argument("--dtype", choices=["molecule", "protein", "dna"], required=True)
     p.add_argument("--dataset", required=True)
     p.add_argument("--seed", type=int, required=True)

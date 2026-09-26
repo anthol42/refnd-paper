@@ -5,7 +5,7 @@ every artifact path is a CLI argument, every stage is skipped if its output
 already exists (so a requeued/restarted job resumes instead of recomputing),
 and the UniRef50 sequences are streamed from the gzipped FASTA (never
 materialized as a single Python-side list -- only one sequence exists in memory
-at a time on the Python side; the only large in-memory allocation is refnd's
+at a time on the Python side; the only large in-memory allocation is relag's
 own Rust-owned copy).
 
 Pipeline:

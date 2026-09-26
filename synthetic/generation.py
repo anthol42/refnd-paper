@@ -207,7 +207,7 @@ def grow_forest(profile: AtlasProfile, n_families: int, n_peptides: int,
 
 def sampled_distances(forest: Forest, n_pairs: int = 20_000,
                       seed: int = 0) -> dict[str, np.ndarray]:
-    """Kernel distance (refnd GlobalAligner, 0 = identical) for random pairs,
+    """Kernel distance (relag GlobalAligner, 0 = identical) for random pairs,
     split by whether the two peptides share a family.
 
     Half of the pairs are drawn within a family, half across two different
@@ -254,8 +254,8 @@ def plot_distances(distances: dict[str, np.ndarray], threshold: float = 0.5,
         ax.hist(distances[key], bins=np.linspace(0, 1, 60), density=True, alpha=0.55,
                 label=f"{label} (n={len(distances[key]):,})", color=color)
     ax.axvline(threshold, color="k", ls="--", lw=1,
-               label=f"refnd threshold = {threshold}")
-    ax.set_xlabel("kernel distance  (refnd GlobalAligner / BLOSUM62, 0 = identical)")
+               label=f"relag threshold = {threshold}")
+    ax.set_xlabel("kernel distance  (relag GlobalAligner / BLOSUM62, 0 = identical)")
     ax.set_ylabel("density")
     ax.legend(fontsize=8)
     fig.tight_layout()

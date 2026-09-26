@@ -1,7 +1,7 @@
 # Comparison benchmark
 
 Outputs **and full pipeline** for the graph-based dataset-splitting comparison
-(Refnd vs Hestia / MMseqs2 / DataSAIL / Random) across molecule, protein, and
+(relag vs Hestia / MMseqs2 / DataSAIL / Random) across molecule, protein, and
 DNA datasets. Generated from `refnd_exp/` (refnd 0.0.3, CPM + null-model splits,
 no post-filtering, no cross-method subsampling). All results are from the same
 run (training `summary.json` files and leakage arrays are mutually consistent).
@@ -23,12 +23,12 @@ results/                            committed outputs (analysis reads these)
   split_metrics/{method}/*.json     per-split wall-time + peak RSS (+ *_communities.json)
   split_metrics.csv                 aggregated split cost (time, peak_rss_mb)
   community_stats.csv               per-split community/component counts
-  wilcoxon_table.json               paired Wilcoxon refnd-vs-baselines
+  wilcoxon_table.json               paired Wilcoxon relag-vs-baselines
   figures/                          per-dataset overfitting plots (test vs train)
   figures_leakage/                  per-dataset max-identity histograms
 scripts/                            VERBATIM cluster pipeline (see below)
   split_utils.py                    shared split helpers (save_split, community stats, ...)
-  refnd_split/    run_{protein,molecule,dna}.py + null_model.py + submit*.sh
+  relag_split/    run_{protein,molecule,dna}.py + null_model.py + submit*.sh
   hestia_split/   run_{protein,molecule,dna}.py + submit*.sh
   mmseqs_split/   run_protein.py + submit.sh
   random_split/   run_all.py + submit.sh
@@ -43,12 +43,12 @@ scripts/                            VERBATIM cluster pipeline (see below)
 
 The scripts are **path-relocatable** — no hardcoded absolute paths. Each script
 resolves an experiment root `BASE` from its own location (the parent of the
-`{method}/` dir), overridable with `REFND_EXP_BASE`. Data, embeddings, splits,
+`{method}/` dir), overridable with `RELAG_EXP_BASE`. Data, embeddings, splits,
 results, logs, and caches all live under `$BASE`. Venvs (`$HOME/venvs/...`),
 `module load`, and SLURM still assume the Alliance cluster. To reproduce:
 
 ```
-export REFND_EXP_BASE=/path/to/experiment   # optional; else derived from script location
+export RELAG_EXP_BASE=/path/to/experiment   # optional; else derived from script location
 bash scripts/setup.sh              # create per-method venvs + logs/ dirs (login node, once)
 bash scripts/datasail_split/build_sif.sh  # build $BASE/datasail.sif from the pinned lock (login node, once)
 bash scripts/download_data.sh      # datasets + cache HF models under $BASE (needs internet)
@@ -58,8 +58,8 @@ bash scripts/run_full.sh           # splits -> train -> leakage -> finalize (SLU
 
 `#SBATCH --output=` paths are relative (`logs/...`), so submit from `$BASE`
 (`run_full.sh` and `setup.sh` create the `logs/` subdirs). Overridable env:
-`REFND_EXP_BASE` (root), `HF_HOME`/`TDC_DATA_PATH` (default `$BASE/{hf_cache,tdc_data}`),
-`REFND_TMP` (mmseqs scratch, default `$BASE/tmp`).
+`RELAG_EXP_BASE` (root), `HF_HOME`/`TDC_DATA_PATH` (default `$BASE/{hf_cache,tdc_data}`),
+`RELAG_TMP` (mmseqs scratch, default `$BASE/tmp`).
 
 `run_full.sh` submits all split jobs, then training + leakage (chained
 `afterok`), then finalize (aggregation + figures). Each split method runs in its
@@ -68,23 +68,23 @@ and training are decoupled: splits write `splits/{method}/{dataset}/{seed}.json`
 training reads those and writes `results/`.
 
 **Thresholds** (as run): protein/peptide 50 % identity, molecules 40 % Tanimoto,
-DNA 60 % identity. refnd's `proximity_threshold` is a *distance* (= 1 − identity),
-so those map to refnd 0.50 / 0.60 / 0.40 respectively.
+DNA 60 % identity. relag's `proximity_threshold` is a *distance* (= 1 − identity),
+so those map to relag 0.50 / 0.60 / 0.40 respectively.
 
 **Molecule null model** uses the random-atom-molecule null
-(`refnd_split/null_model.py:random_molecule_null_gamma`, ported from the paper's
+(`relag_split/null_model.py:random_molecule_null_gamma`, ported from the paper's
 `threshold/molecules.py:find_gamma_function`): a synthetic, dataset-independent
 gamma cached under `cache/mol_null_random_*.npy` and shared across all molecule
 datasets. `run_full.sh` clears that cache so each run recomputes it.
 
 ## Regenerate figures only (locally, from committed results)
 
-The plotting scripts derive `BASE` from `REFND_EXP_BASE` (falling back to their
+The plotting scripts derive `BASE` from `RELAG_EXP_BASE` (falling back to their
 location). Point it at this `comparison/` dir so they read `results/` here:
 
 ```
-REFND_EXP_BASE=comparison uv run python comparison/scripts/deep_learning/plot_results.py
-REFND_EXP_BASE=comparison uv run python comparison/scripts/deep_learning/plot_leakage.py
+RELAG_EXP_BASE=comparison uv run python comparison/scripts/deep_learning/plot_results.py
+RELAG_EXP_BASE=comparison uv run python comparison/scripts/deep_learning/plot_leakage.py
 ```
 
 `compute_leakage.py` and `aggregate_results.py` additionally need the embeddings /

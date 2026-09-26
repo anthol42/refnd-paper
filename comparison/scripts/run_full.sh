@@ -4,7 +4,7 @@
 # retrains all methods, recomputes leakage for all, and finalizes (figures + CSVs
 # including split_metrics.csv).
 set -euo pipefail
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 cd "$BASE"
 
 # Log dirs must exist before submit: Slurm opens #SBATCH --output (now relative
@@ -18,11 +18,11 @@ rm -f cache/mol_null_random_*.npy  # force fresh random-molecule null (cache is 
 
 echo "Submitting split jobs..."
 JID_RND=$(sbatch  --parsable random_split/submit.sh)
-JID_RFND=$(sbatch --parsable refnd_split/submit.sh)
+JID_RFND=$(sbatch --parsable relag_split/submit.sh)
 JID_MMQ=$(sbatch  --parsable mmseqs_split/submit.sh)
 JID_HST=$(sbatch  --parsable hestia_split/submit.sh)
 JID_DS=$(sbatch   --parsable --array=1-10 datasail_split/submit.sh)
-echo "  random=$JID_RND refnd=$JID_RFND mmseqs=$JID_MMQ hestia=$JID_HST datasail=$JID_DS"
+echo "  random=$JID_RND relag=$JID_RFND mmseqs=$JID_MMQ hestia=$JID_HST datasail=$JID_DS"
 
 # Core methods must succeed; datasail is allowed to partially fail (ILP infeasibility)
 # without blocking the whole pipeline -- only its own train/leakage tasks would skip.

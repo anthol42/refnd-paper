@@ -12,7 +12,7 @@
 METHODS=(refnd random mmseqs2 hestia datasail)
 M=${METHODS[$SLURM_ARRAY_TASK_ID]}
 
-BASE="${REFND_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 module load python/3.13.2 rdkit/2024.09.6 clang/18.1.8
 export LIBCLANG_PATH=$EBROOTCLANG/lib
 source "$HOME/venvs/refnd_exp/deep_learning/bin/activate"

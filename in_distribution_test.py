@@ -14,7 +14,7 @@ be able to do better than chance -> balanced accuracy ~= 50%.
 Repeated over several seeds.
 
 Note: both split strategies rebuild everything from scratch on every call
-(HNSW+Leiden for refnd; RDKit/alignment reclustering for Hestia) — that's
+(HNSW+Leiden for relag; RDKit/alignment reclustering for Hestia) — that's
 2 * N_REPEATS rebuilds per method. Fine for these dataset sizes; keeps the
 split functions simple, self-contained, and sklearn-shaped.
 
@@ -51,7 +51,7 @@ LABEL_SPLIT_RATIO = 0.5
 CLASSIFIER_SPLIT_RATIO = 0.2
 SEED_OFFSET = 10_000  # keeps the label split and classifier split independent
 
-# Bridges refnd's KernelVariant (cfg.modality) to Hestia's SimArguments.data_type
+# Bridges relag's KernelVariant (cfg.modality) to Hestia's SimArguments.data_type
 # string, so both split strategies are driven off the same DatasetConfig.modality
 # instead of a second, hand-maintained per-dataset-key table.
 # Keyed by str(modality) since KernelVariant (a PyO3 enum) isn't hashable.
@@ -93,7 +93,7 @@ def _to_kernel_items(dataset: list[str], modality: KernelVariant) -> list[Any]:
 # ── Per-method split strategies (sklearn-shaped: same (dataset, modality, threshold,
 # kernel_params) inputs, differing only in keyword-only extras and internals) ──
 
-def train_test_split_refnd(
+def train_test_split_relag(
     dataset: list[str], modality: KernelVariant, threshold: float, kernel_params: dict,
     *, test_ratio: float, seed: int, post_filtering: bool,
     ef_construction: int = 64, ef_init: int = 2,
@@ -246,9 +246,9 @@ def main() -> None:
     results = {}
 
     if args.method in ("refnd", "both"):
-        print("\n[green]-- refnd --[/]")
+        print("\n[green]-- relag --[/]")
         split_fn = partial(
-            train_test_split_refnd, dataset_items, cfg.modality, cfg.proximity_threshold,
+            train_test_split_relag, dataset_items, cfg.modality, cfg.proximity_threshold,
             cfg.kernel_params, post_filtering=True,
             ef_construction=args.ef_construction, ef_init=args.ef_init,
         )

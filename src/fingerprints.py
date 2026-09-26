@@ -17,7 +17,7 @@ import numpy as np
 # cpuset Slurm sets, so this stays within what was actually allocated.
 _MAX_WORKERS = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count()
 
-# refnd (a Rust/PyO3 extension imported by src/datasets.py before this
+# relag (a Rust/PyO3 extension imported by src/datasets.py before this
 # module is used) may already have live native threads in this process. The
 # default "fork" start method duplicates the parent's memory and those
 # threads' lock state, but only the forking thread survives into the child

@@ -9,7 +9,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE="${REFND_EXP_BASE:-$(cd "$HERE/.." && pwd)}"
+BASE="${RELAG_EXP_BASE:-$(cd "$HERE/.." && pwd)}"
 RELOCK=0
 if [ "${1:-}" = "--relock" ]; then RELOCK=1; shift; fi
 SIF="${1:-$BASE/datasail.sif}"

@@ -8,7 +8,7 @@ that keeps families whole scores 0; a random split scores close to 1.
 compare_splits does not store split indices, so this script regenerates the
 first N_REPEATS annotated datasets (same generator seeds) and re-splits them
 with the same methods and settings. Random and oracle splits are identical to
-compare_splits'; refnd, Hestia and DataSAIL are fresh splits with identical
+compare_splits'; relag, Hestia and DataSAIL are fresh splits with identical
 settings.
 
 Usage:
